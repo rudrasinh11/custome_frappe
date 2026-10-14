@@ -203,6 +203,42 @@
       background: var(--border-base);
     }
 
+    /* Clean Punch Direction Selector (Auto / IN / OUT) */
+    .mode-selector-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 2px 0 6px 0;
+    }
+
+    .mode-pill {
+      display: inline-flex;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-base);
+      border-radius: var(--radius-full);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-option-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .mode-option-btn.active {
+      background: var(--primary-solid);
+      color: var(--primary-text);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
     /* Clean Camera Viewport */
     .camera-frame {
       position: relative;
@@ -609,6 +645,21 @@
         </div>
       </div>
 
+      <!-- Clean Punch Direction Selector (Auto / IN / OUT) -->
+      <div class="mode-selector-wrap" v-if="!attendanceSuccess && !securityError">
+        <div class="mode-pill">
+          <button type="button" class="mode-option-btn" :class="{ active: punchMode === 'AUTO' }" @click="punchMode = 'AUTO'">
+            Auto (Smart)
+          </button>
+          <button type="button" class="mode-option-btn" :class="{ active: punchMode === 'IN' }" @click="punchMode = 'IN'">
+            Clock IN
+          </button>
+          <button type="button" class="mode-option-btn" :class="{ active: punchMode === 'OUT' }" @click="punchMode = 'OUT'">
+            Clock OUT
+          </button>
+        </div>
+      </div>
+
       <!-- ============================================ -->
       <!-- STEP 1: SHOW FACE & CAPTURE                 -->
       <!-- ============================================ -->
@@ -751,12 +802,18 @@
           <div class="receipt-row" style="padding-top: 4px; border-top: 1px solid var(--border-base);">
             <span class="receipt-label">Attendance Recorded</span>
             <span class="receipt-punch-badge">
-              {{ attendanceSuccess.log_type === 'IN' ? 'CHECKED IN' : 'CHECKED OUT' }} &bull; {{ attendanceSuccess.time }}
+              {{ attendanceSuccess.log_type === 'OUT' ? 'CHECKED OUT' : 'CHECKED IN' }} &bull; {{ attendanceSuccess.time }}
             </span>
           </div>
           <div class="receipt-row">
             <span class="receipt-label">Status</span>
             <span class="receipt-val">{{ attendanceSuccess.timing_label || attendanceSuccess.timing_module || 'Present' }}</span>
+          </div>
+          <div class="receipt-row" v-if="attendanceSuccess.latitude && attendanceSuccess.longitude">
+            <span class="receipt-label">Location (GPS)</span>
+            <span class="receipt-val" style="font-family: monospace; font-size: 0.74rem;">
+              {{ Number(attendanceSuccess.latitude).toFixed(4) }}, {{ Number(attendanceSuccess.longitude).toFixed(4) }}
+            </span>
           </div>
         </div>
 
@@ -798,6 +855,7 @@
         const currentTimeStr = ref('');
         const currentDateStr = ref('');
         const currentStep = ref(1); // 1 = Face Capture, 2 = Enter PIN
+        const punchMode = ref('AUTO'); // 'AUTO', 'IN', 'OUT'
         
         const facingMode = ref('user');
         const capturedSelfie = ref(null);
@@ -1045,11 +1103,29 @@
               return;
             }
 
+            // Ensure fresh GPS location before punch submission
+            if (!geoCoords.value && 'geolocation' in navigator) {
+              try {
+                const pos = await new Promise((resolve, reject) => {
+                  navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 2000, enableHighAccuracy: true });
+                });
+                if (pos && pos.coords) {
+                  geoCoords.value = `${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`;
+                }
+              } catch(e) {}
+            }
+
+            const pLat = geoCoords.value && geoCoords.value.includes(',') ? parseFloat(geoCoords.value.split(',')[0].trim()) : null;
+            const pLon = geoCoords.value && geoCoords.value.includes(',') ? parseFloat(geoCoords.value.split(',')[1].trim()) : null;
+
             // 2. Direct Single Fast API Call (No duplicate network roundtrip!)
             const payload = {
               pin: enteredPin,
               photo_base64: capturedSelfie.value,
+              log_type: punchMode.value === 'AUTO' ? null : punchMode.value,
               coords: geoCoords.value,
+              latitude: pLat,
+              longitude: pLon,
               selfie_descriptor: JSON.stringify(selfieDescriptor.value)
             };
 
@@ -1135,6 +1211,7 @@
           selfieDetectionPromise = null;
           pinDigits.value = '';
           securityError.value = null;
+          punchMode.value = 'AUTO';
           currentStep.value = 1;
           nextTick(() => {
             initCamera();

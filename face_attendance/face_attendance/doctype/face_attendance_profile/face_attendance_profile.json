@@ -30,7 +30,10 @@
   "shift_start_time",
   "col_break_shift",
   "shift_end_time",
-  "grace_period_mins"
+  "grace_period_mins",
+  "last_latitude",
+  "last_longitude",
+  "last_location"
  ],
  "fields": [
   {
@@ -180,6 +183,21 @@
    "fieldname": "grace_period_mins",
    "fieldtype": "Int",
    "label": "Grace Period (Minutes)"
+  },
+  {
+   "fieldname": "last_latitude",
+   "fieldtype": "Float",
+   "label": "Last Latitude"
+  },
+  {
+   "fieldname": "last_longitude",
+   "fieldtype": "Float",
+   "label": "Last Longitude"
+  },
+  {
+   "fieldname": "last_location",
+   "fieldtype": "Data",
+   "label": "Last Location Coords"
   }
  ],
  "links": [],

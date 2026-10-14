@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Management • Frappe Unified Workspace</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #f6f5f1;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1ede4;
+      --border-base: #e2ddd3;
+      --border-focus: #18181b;
+      --text-primary: #18181b;
+      --text-secondary: #52525b;
+      --text-muted: #71717a;
+      --accent-primary: #18181b;
+      --accent-emerald: #059669;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      --accent-indigo: #4f46e5;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Header */
+    .top-navbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-base);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .nav-inner {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #18181b;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Unified Suite Navigation Links */
+    .suite-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-subtle);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-base);
+    }
+
+    .suite-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 7px;
+      transition: all 0.15s ease;
+    }
+
+    .suite-link:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .suite-link.active {
+      background: #ffffff;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border-base);
+      background: #ffffff;
+      color: var(--text-primary);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--bg-subtle);
+      border-color: #d4cebf;
+    }
+
+    .btn-primary {
+      background: #18181b;
+      color: #ffffff;
+      border-color: #18181b;
+    }
+
+    .btn-primary:hover {
+      background: #27272a;
+      border-color: #27272a;
+    }
+
+    /* Main Container */
+    .main-wrap {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* KPI Metrics Ribbon */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .kpi-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      margin-top: 4px;
+      color: var(--text-primary);
+    }
+
+    .kpi-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Control Bar */
+    .control-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-base);
+      border-radius: 8px;
+      padding: 6px 12px;
+      flex: 1;
+      min-width: 260px;
+      max-width: 420px;
+    }
+
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .filters-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .select-filter {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 8px;
+      border: 1px solid var(--border-base);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .view-toggle {
+      display: flex;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-base);
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .view-btn {
+      padding: 5px 10px;
+      border: none;
+      background: transparent;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .view-btn.active {
+      background: #ffffff;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Kanban Board */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: start;
+      overflow-x: auto;
+      padding-bottom: 20px;
+    }
+
+    .kanban-col {
+      background: #efebe2;
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 270px);
+    }
+
+    .col-header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .col-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .col-count {
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(0, 0, 0, 0.08);
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .col-cards {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      min-height: 140px;
+    }
+
+    /* Task Card */
+    .task-card {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .task-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: #cfc8b8;
+      transform: translateY(-1px);
+    }
+
+    .task-meta-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .priority-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .p-urgent { background: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
+    .p-high { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .p-medium { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    .p-low { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+    .task-id {
+      font-size: 0.7rem;
+      font-family: monospace;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .task-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+
+    .task-project-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      align-self: flex-start;
+    }
+
+    .task-meta-bot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid #f4f0e6;
+      padding-top: 8px;
+    }
+
+    .due-date {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+
+    .due-overdue {
+      color: #e11d48;
+      font-weight: 700;
+    }
+
+    /* List View Table */
+    .list-table-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background: var(--bg-subtle);
+      padding: 10px 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-base);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-base);
+      color: var(--text-primary);
+    }
+
+    tr:hover td {
+      background: #faf8f5;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-base);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-foot {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-base);
+      background: var(--bg-canvas);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-base);
+      font-size: 0.84rem;
+      outline: none;
+      width: 100%;
+      background: #ffffff;
+      color: var(--text-primary);
+    }
+
+    .form-control:focus {
+      border-color: var(--border-focus);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+  {% raw %}
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="nav-inner">
+        <a href="/task-management" class="nav-brand">
+          <div class="brand-icon">
+            <i data-lucide="check-square" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <div class="brand-name">Task Management</div>
+            <div class="brand-sub">Frappe Unified Workspace &bull; H: Drive Instance</div>
+          </div>
+        </a>
+
+        <!-- Universal App Suite Navigation -->
+        <nav class="suite-nav">
+          <a href="/candidate-search" class="suite-link" title="Open Candidate Discovery & Boolean Harvester">
+            <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+            <span>Candidates</span>
+          </a>
+          <a href="/task-management" class="suite-link active" title="Current: Task Management">
+            <i data-lucide="check-square" style="width: 13px; height: 13px;"></i>
+            <span>Tasks</span>
+          </a>
+          <a href="/face-attendance" class="suite-link" title="Face Attendance Portal">
+            <i data-lucide="scan-face" style="width: 13px; height: 13px;"></i>
+            <span>Attendance</span>
+          </a>
+          <a href="/app" target="_blank" class="suite-link" title="Full Frappe ERPNext Desk">
+            <i data-lucide="layout-grid" style="width: 13px; height: 13px;"></i>
+            <span>Desk &rarr;</span>
+          </a>
+        </nav>
+
+        <!-- Action Buttons -->
+        <div class="nav-actions">
+          <button class="btn" @click="openProjectModal = true">
+            <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
+            <span>New Project</span>
+          </button>
+          <button class="btn btn-primary" @click="openCreateModal = true">
+            <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+            <span>Create Task</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-wrap">
+      <!-- KPI Metrics Strip -->
+      <section class="kpi-strip">
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Total Tasks</div>
+            <div class="kpi-val">{{ stats.total || 0 }}</div>
+          </div>
+          <div class="kpi-icon-wrap" style="background:#e0e7ff; color:#4338ca;">
+            <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">In Progress</div>
+            <div class="kpi-val" style="color:#d97706;">{{ stats.working || 0 }}</div>
+          </div>
+          <div class="kpi-icon-wrap" style="background:#fef3c7; color:#d97706;">
+            <i data-lucide="play-circle" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Completed</div>
+            <div class="kpi-val" style="color:#059669;">{{ stats.completed || 0 }}</div>
+          </div>
+          <div class="kpi-icon-wrap" style="background:#d1fae5; color:#059669;">
+            <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Overdue Tasks</div>
+            <div class="kpi-val" style="color:#e11d48;">{{ stats.overdue || 0 }}</div>
+          </div>
+          <div class="kpi-icon-wrap" style="background:#ffe4e6; color:#e11d48;">
+            <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search & Filters Control Bar -->
+      <section class="control-bar">
+        <div class="search-box">
+          <i data-lucide="search" style="width: 15px; height: 15px; color:#71717a;"></i>
+          <input 
+            type="text" 
+            v-model="searchTerm" 
+            placeholder="Search tasks by subject, description, project..." 
+            @input="debounceSearch"
+          />
+        </div>
+
+        <div class="filters-group">
+          <!-- Project Filter -->
+          <select class="select-filter" v-model="selectedProject" @change="fetchTasks">
+            <option value="all">All Projects ({{ projects.length }})</option>
+            <option v-for="p in projects" :key="p.name" :value="p.name">{{ p.project_name || p.name }}</option>
+          </select>
+
+          <!-- Priority Filter -->
+          <select class="select-filter" v-model="selectedPriority" @change="fetchTasks">
+            <option value="all">All Priorities</option>
+            <option value="Urgent">Urgent Priority</option>
+            <option value="High">High Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="Low">Low Priority</option>
+          </select>
+
+          <!-- View Switcher -->
+          <div class="view-toggle">
+            <button class="view-btn" :class="{ active: viewMode === 'kanban' }" @click="viewMode = 'kanban'">
+              <i data-lucide="kanban" style="width: 13px; height: 13px;"></i>
+              <span>Board</span>
+            </button>
+            <button class="view-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'">
+              <i data-lucide="list" style="width: 13px; height: 13px;"></i>
+              <span>List</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- KANBAN BOARD VIEW -->
+      <section class="kanban-board" v-if="viewMode === 'kanban'">
+        <!-- Open / To Do -->
+        <div class="kanban-col">
+          <div class="col-header">
+            <div class="col-title" style="color:#2563eb;">
+              <span>To Do</span>
+              <span class="col-count">{{ columns.Open?.length || 0 }}</span>
+            </div>
+            <button class="btn" style="padding:2px 6px; font-size:11px;" @click="quickAddTask('Open')">+</button>
+          </div>
+          <div class="col-cards">
+            <div 
+              class="task-card" 
+              v-for="t in columns.Open" 
+              :key="t.name" 
+              @click="openTaskDetail(t)">
+              <div class="task-meta-top">
+                <span :class="['priority-badge', 'p-' + t.priority.toLowerCase()]">{{ t.priority }}</span>
+                <span class="task-id">{{ t.name }}</span>
+              </div>
+              <div class="task-title">{{ t.subject }}</div>
+              <div v-if="t.project" class="task-project-tag">
+                <i data-lucide="folder" style="width: 11px; height: 11px;"></i>
+                <span>{{ t.project }}</span>
+              </div>
+              <div class="task-meta-bot">
+                <span class="due-date" :class="{ 'due-overdue': isOverdue(t) }">
+                  <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+                  <span>{{ formatDate(t.exp_end_date) }}</span>
+                </span>
+                <button class="btn" style="padding:2px 8px; font-size:10px;" @click.stop="quickAdvanceStatus(t, 'Working')">
+                  Start &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In Progress / Working -->
+        <div class="kanban-col">
+          <div class="col-header">
+            <div class="col-title" style="color:#d97706;">
+              <span>In Progress</span>
+              <span class="col-count">{{ columns.Working?.length || 0 }}</span>
+            </div>
+            <button class="btn" style="padding:2px 6px; font-size:11px;" @click="quickAddTask('Working')">+</button>
+          </div>
+          <div class="col-cards">
+            <div 
+              class="task-card" 
+              v-for="t in columns.Working" 
+              :key="t.name" 
+              @click="openTaskDetail(t)">
+              <div class="task-meta-top">
+                <span :class="['priority-badge', 'p-' + t.priority.toLowerCase()]">{{ t.priority }}</span>
+                <span class="task-id">{{ t.name }}</span>
+              </div>
+              <div class="task-title">{{ t.subject }}</div>
+              <div v-if="t.project" class="task-project-tag">
+                <i data-lucide="folder" style="width: 11px; height: 11px;"></i>
+                <span>{{ t.project }}</span>
+              </div>
+              <div class="task-meta-bot">
+                <span class="due-date" :class="{ 'due-overdue': isOverdue(t) }">
+                  <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+                  <span>{{ formatDate(t.exp_end_date) }}</span>
+                </span>
+                <button class="btn" style="padding:2px 8px; font-size:10px;" @click.stop="quickAdvanceStatus(t, 'Pending Review')">
+                  Review &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Review -->
+        <div class="kanban-col">
+          <div class="col-header">
+            <div class="col-title" style="color:#7c3aed;">
+              <span>Review</span>
+              <span class="col-count">{{ columns['Pending Review']?.length || 0 }}</span>
+            </div>
+            <button class="btn" style="padding:2px 6px; font-size:11px;" @click="quickAddTask('Pending Review')">+</button>
+          </div>
+          <div class="col-cards">
+            <div 
+              class="task-card" 
+              v-for="t in columns['Pending Review']" 
+              :key="t.name" 
+              @click="openTaskDetail(t)">
+              <div class="task-meta-top">
+                <span :class="['priority-badge', 'p-' + t.priority.toLowerCase()]">{{ t.priority }}</span>
+                <span class="task-id">{{ t.name }}</span>
+              </div>
+              <div class="task-title">{{ t.subject }}</div>
+              <div v-if="t.project" class="task-project-tag">
+                <i data-lucide="folder" style="width: 11px; height: 11px;"></i>
+                <span>{{ t.project }}</span>
+              </div>
+              <div class="task-meta-bot">
+                <span class="due-date" :class="{ 'due-overdue': isOverdue(t) }">
+                  <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+                  <span>{{ formatDate(t.exp_end_date) }}</span>
+                </span>
+                <button class="btn" style="padding:2px 8px; font-size:10px;" @click.stop="quickAdvanceStatus(t, 'Completed')">
+                  Done &check;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed -->
+        <div class="kanban-col">
+          <div class="col-header">
+            <div class="col-title" style="color:#059669;">
+              <span>Completed</span>
+              <span class="col-count">{{ columns.Completed?.length || 0 }}</span>
+            </div>
+          </div>
+          <div class="col-cards">
+            <div 
+              class="task-card" 
+              v-for="t in columns.Completed" 
+              :key="t.name" 
+              style="opacity: 0.85;"
+              @click="openTaskDetail(t)">
+              <div class="task-meta-top">
+                <span class="priority-badge" style="background:#d1fae5; color:#047857;">DONE</span>
+                <span class="task-id">{{ t.name }}</span>
+              </div>
+              <div class="task-title" style="text-decoration: line-through; color:var(--text-secondary);">
+                {{ t.subject }}
+              </div>
+              <div v-if="t.project" class="task-project-tag" style="background:#f1f5f9; color:#475569;">
+                <span>{{ t.project }}</span>
+              </div>
+              <div class="task-meta-bot">
+                <span style="color:#059669; font-weight:700;">Completed</span>
+                <button class="btn" style="padding:2px 8px; font-size:10px;" @click.stop="quickAdvanceStatus(t, 'Open')">
+                  Reopen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cancelled -->
+        <div class="kanban-col">
+          <div class="col-header">
+            <div class="col-title" style="color:#64748b;">
+              <span>Cancelled</span>
+              <span class="col-count">{{ columns.Cancelled?.length || 0 }}</span>
+            </div>
+          </div>
+          <div class="col-cards">
+            <div 
+              class="task-card" 
+              v-for="t in columns.Cancelled" 
+              :key="t.name" 
+              style="opacity: 0.65;"
+              @click="openTaskDetail(t)">
+              <div class="task-meta-top">
+                <span class="priority-badge" style="background:#f1f5f9; color:#64748b;">CANCELLED</span>
+                <span class="task-id">{{ t.name }}</span>
+              </div>
+              <div class="task-title">{{ t.subject }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIST TABLE VIEW -->
+      <section class="list-table-card" v-if="viewMode === 'list'">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Task Subject</th>
+              <th>Project</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Progress</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="t in allTasks" :key="t.name" @click="openTaskDetail(t)" style="cursor:pointer;">
+              <td style="font-family:monospace; font-weight:700;">{{ t.name }}</td>
+              <td style="font-weight:600;">{{ t.subject }}</td>
+              <td>{{ t.project || '-' }}</td>
+              <td>
+                <span :style="{ fontWeight: 700, color: getStatusColor(t.status) }">{{ t.status }}</span>
+              </td>
+              <td>
+                <span :class="['priority-badge', 'p-' + t.priority.toLowerCase()]">{{ t.priority }}</span>
+              </td>
+              <td :class="{ 'due-overdue': isOverdue(t) }">{{ formatDate(t.exp_end_date) }}</td>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="flex:1; height:6px; background:#e4e4e7; border-radius:3px; overflow:hidden;">
+                    <div :style="{ width: (t.progress || 0) + '%', height:'100%', background: getStatusColor(t.status) }"></div>
+                  </div>
+                  <span style="font-size:10px;">{{ t.progress || 0 }}%</span>
+                </div>
+              </td>
+              <td>
+                <button class="btn" style="padding:3px 8px; font-size:11px;" @click.stop="openTaskDetail(t)">Edit</button>
+              </td>
+            </tr>
+            <tr v-if="allTasks.length === 0">
+              <td colspan="8" style="text-align:center; padding:30px; color:#71717a;">
+                No tasks matching current filters. Click "Create Task" to add your first task!
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- CREATE TASK MODAL -->
+    <div class="modal-backdrop" v-if="openCreateModal" @click.self="openCreateModal = false">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3 style="font-family:'Outfit', sans-serif; font-size:1.15rem; font-weight:800;">Create New Task</h3>
+          <button class="btn" style="padding:4px 8px;" @click="openCreateModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Task Subject *</label>
+            <input type="text" class="form-control" v-model="newTask.subject" placeholder="e.g. Implement Candidate Pipeline Filter" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Project</label>
+              <select class="form-control" v-model="newTask.project">
+                <option value="">No Project</option>
+                <option v-for="p in projects" :key="p.name" :value="p.name">{{ p.project_name || p.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-control" v-model="newTask.priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Initial Status</label>
+              <select class="form-control" v-model="newTask.status">
+                <option value="Open">Open (To Do)</option>
+                <option value="Working">Working (In Progress)</option>
+                <option value="Pending Review">Pending Review</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Due Date</label>
+              <input type="date" class="form-control" v-model="newTask.exp_end_date" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Task Description & Requirements</label>
+            <textarea class="form-control" rows="4" v-model="newTask.description" placeholder="Add detailed instructions, deliverables, requirements..."></textarea>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" @click="openCreateModal = false">Cancel</button>
+          <button class="btn btn-primary" :disabled="isSubmitting" @click="saveNewTask">
+            {{ isSubmitting ? 'Saving...' : 'Create Task in Frappe' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE PROJECT MODAL -->
+    <div class="modal-backdrop" v-if="openProjectModal" @click.self="openProjectModal = false">
+      <div class="modal-box" style="max-width:440px;">
+        <div class="modal-head">
+          <h3 style="font-family:'Outfit', sans-serif; font-size:1.15rem; font-weight:800;">Create Project</h3>
+          <button class="btn" style="padding:4px 8px;" @click="openProjectModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Project Name *</label>
+            <input type="text" class="form-control" v-model="newProjectName" placeholder="e.g. HR Automation 2026" required />
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" @click="openProjectModal = false">Cancel</button>
+          <button class="btn btn-primary" :disabled="isSubmitting" @click="saveNewProject">
+            {{ isSubmitting ? 'Creating...' : 'Create Project' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK DETAIL & EDIT MODAL -->
+    <div class="modal-backdrop" v-if="activeTask" @click.self="activeTask = null">
+      <div class="modal-box">
+        <div class="modal-head">
+          <div>
+            <span class="task-id">{{ activeTask.name }}</span>
+            <h3 style="font-family:'Outfit', sans-serif; font-size:1.15rem; font-weight:800; margin-top:2px;">
+              {{ activeTask.subject }}
+            </h3>
+          </div>
+          <button class="btn" style="padding:4px 8px;" @click="activeTask = null">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <input type="text" class="form-control" v-model="activeTask.subject" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-control" v-model="activeTask.status">
+                <option value="Open">Open</option>
+                <option value="Working">Working</option>
+                <option value="Pending Review">Pending Review</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-control" v-model="activeTask.priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Project</label>
+              <select class="form-control" v-model="activeTask.project">
+                <option value="">No Project</option>
+                <option v-for="p in projects" :key="p.name" :value="p.name">{{ p.project_name || p.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Due Date</label>
+              <input type="date" class="form-control" v-model="activeTask.exp_end_date" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Progress: {{ activeTask.progress || 0 }}%</label>
+            <input type="range" min="0" max="100" step="5" class="form-control" v-model="activeTask.progress" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description & Notes</label>
+            <textarea class="form-control" rows="4" v-model="activeTask.description"></textarea>
+          </div>
+        </div>
+        <div class="modal-foot" style="justify-content:space-between;">
+          <button class="btn" style="color:#e11d48; border-color:#fecdd3;" @click="removeTask(activeTask.name)">
+            Delete Task
+          </button>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" @click="activeTask = null">Close</button>
+            <button class="btn btn-primary" :disabled="isSubmitting" @click="saveActiveTask">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endraw %}
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const viewMode = ref('kanban');
+        const searchTerm = ref('');
+        const selectedProject = ref('all');
+        const selectedPriority = ref('all');
+
+        const allTasks = ref([]);
+        const columns = ref({ Open: [], Working: [], 'Pending Review': [], Completed: [], Cancelled: [] });
+        const projects = ref([]);
+        const stats = ref({ total: 0, overdue: 0, completed: 0, working: 0, priority: {} });
+
+        const openCreateModal = ref(false);
+        const openProjectModal = ref(false);
+        const isSubmitting = ref(false);
+        const activeTask = ref(null);
+
+        const newTask = ref({
+          subject: '',
+          project: '',
+          priority: 'Medium',
+          status: 'Open',
+          exp_end_date: '',
+          description: ''
+        });
+
+        const newProjectName = ref('');
+        let searchTimer = null;
+
+        const refreshIcons = () => {
+          nextTick(() => {
+            if (window.lucide) window.lucide.createIcons();
+          });
+        };
+
+        const fetchTasks = async () => {
+          try {
+            const params = new URLSearchParams({
+              project: selectedProject.value,
+              priority: selectedPriority.value,
+              search: searchTerm.value
+            });
+            const res = await fetch('/api/method/face_attendance.api.get_task_board?' + params.toString());
+            const data = await res.json();
+            if (data.message && data.message.success) {
+              allTasks.value = data.message.tasks || [];
+              columns.value = data.message.columns || {};
+              projects.value = data.message.projects || [];
+              stats.value = data.message.stats || {};
+            }
+          } catch (e) {
+            console.error('Fetch error:', e);
+          } finally {
+            refreshIcons();
+          }
+        };
+
+        const debounceSearch = () => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => {
+            fetchTasks();
+          }, 250);
+        };
+
+        const quickAddTask = (status) => {
+          newTask.value = {
+            subject: '',
+            project: selectedProject.value !== 'all' ? selectedProject.value : '',
+            priority: 'Medium',
+            status: status,
+            exp_end_date: '',
+            description: ''
+          };
+          openCreateModal.value = true;
+          refreshIcons();
+        };
+
+        const saveNewTask = async () => {
+          if (!newTask.value.subject.trim()) {
+            alert('Please enter a task subject.');
+            return;
+          }
+          isSubmitting.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.create_task', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newTask.value)
+            });
+            const data = await res.json();
+            if (data.message && data.message.success) {
+              openCreateModal.value = false;
+              fetchTasks();
+            } else {
+              alert(data.message || 'Error creating task');
+            }
+          } catch (e) {
+            alert('Network error: ' + e.message);
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const saveNewProject = async () => {
+          if (!newProjectName.value.trim()) {
+            alert('Please enter a project name.');
+            return;
+          }
+          isSubmitting.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.create_project', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ project_name: newProjectName.value })
+            });
+            const data = await res.json();
+            if (data.message && data.message.success) {
+              newProjectName.value = '';
+              openProjectModal.value = false;
+              fetchTasks();
+            } else {
+              alert(data.message || 'Error creating project');
+            }
+          } catch (e) {
+            alert('Network error: ' + e.message);
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const quickAdvanceStatus = async (task, newStatus) => {
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_task_status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ task_id: task.name, status: newStatus })
+            });
+            const data = await res.json();
+            if (data.message && data.message.success) {
+              fetchTasks();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const openTaskDetail = (task) => {
+          activeTask.value = { ...task };
+          refreshIcons();
+        };
+
+        const saveActiveTask = async () => {
+          if (!activeTask.value) return;
+          isSubmitting.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_task_details', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                task_id: activeTask.value.name,
+                subject: activeTask.value.subject,
+                project: activeTask.value.project,
+                priority: activeTask.value.priority,
+                status: activeTask.value.status,
+                exp_end_date: activeTask.value.exp_end_date,
+                description: activeTask.value.description,
+                progress: activeTask.value.progress
+              })
+            });
+            const data = await res.json();
+            if (data.message && data.message.success) {
+              activeTask.value = null;
+              fetchTasks();
+            }
+          } catch (e) {
+            alert('Error updating task: ' + e.message);
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const removeTask = async (taskId) => {
+          if (!confirm(`Are you sure you want to delete task ${taskId}?`)) return;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.delete_task', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ task_id: taskId })
+            });
+            const data = await res.json();
+            if (data.message && data.message.success) {
+              activeTask.value = null;
+              fetchTasks();
+            }
+          } catch (e) {
+            alert('Error deleting task: ' + e.message);
+          }
+        };
+
+        const isOverdue = (task) => {
+          if (!task.exp_end_date || task.status === 'Completed' || task.status === 'Cancelled') return false;
+          const today = new Date().toISOString().slice(0, 10);
+          return task.exp_end_date < today;
+        };
+
+        const formatDate = (dateStr) => {
+          if (!dateStr) return 'No due date';
+          try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          } catch (e) {
+            return dateStr;
+          }
+        };
+
+        const getStatusColor = (status) => {
+          const map = {
+            Open: '#2563eb',
+            Working: '#d97706',
+            'Pending Review': '#7c3aed',
+            Completed: '#059669',
+            Cancelled: '#64748b'
+          };
+          return map[status] || '#71717a';
+        };
+
+        onMounted(() => {
+          fetchTasks();
+        });
+
+        return {
+          viewMode,
+          searchTerm,
+          selectedProject,
+          selectedPriority,
+          allTasks,
+          columns,
+          projects,
+          stats,
+          openCreateModal,
+          openProjectModal,
+          isSubmitting,
+          activeTask,
+          newTask,
+          newProjectName,
+          fetchTasks,
+          debounceSearch,
+          quickAddTask,
+          saveNewTask,
+          saveNewProject,
+          quickAdvanceStatus,
+          openTaskDetail,
+          saveActiveTask,
+          removeTask,
+          isOverdue,
+          formatDate,
+          getStatusColor
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

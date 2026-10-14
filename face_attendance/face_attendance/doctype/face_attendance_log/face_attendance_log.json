@@ -27,7 +27,9 @@
   "device_info",
   "ip_address",
   "location_coords",
-  "notes"
+  "notes",
+  "latitude",
+  "longitude"
  ],
  "fields": [
   {
@@ -161,6 +163,18 @@
    "fieldtype": "Attach Image",
    "in_list_view": 1,
    "label": "Admin Reference Photo"
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Latitude"
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Longitude"
   }
  ],
  "links": [],

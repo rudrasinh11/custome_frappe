@@ -17,15 +17,22 @@ class JobCandidate(Document):
                 frappe.throw(_("Phone number must have at least 10 digits."))
             self.phone = cleaned_phone
 
-        # 2. STRICT PDF VALIDATION (No .doc, .docx, images, etc.)
+        # 2. RESUME VALIDATION (Accepts PDF, Word .doc, .docx, or external document URLs)
         if self.resume:
             clean_resume = str(self.resume).strip().lower()
-            # Strip query params if any
             clean_resume = clean_resume.split('?')[0]
 
-            # Check prohibited document types explicitly
-            if clean_resume.endswith('.doc') or clean_resume.endswith('.docx'):
-                frappe.throw(_("Word documents (.doc, .docx) are NOT allowed. Please upload your resume in PDF format only (.pdf)."))
-            
-            if not clean_resume.endswith('.pdf'):
-                frappe.throw(_("Invalid resume file format! Strictly PDF format (.pdf) is accepted."))
+            bad_exts = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.bmp']
+            if any(clean_resume.endswith(ext) for ext in bad_exts):
+                frappe.throw(_("Image files are NOT allowed as resumes. Please upload your resume in PDF or Word (.doc, .docx) format."))
+
+            is_valid_route = (
+                clean_resume.startswith('/candidate-resume') or 
+                clean_resume.startswith('/candidate_resume') or 
+                clean_resume.endswith('.pdf') or 
+                clean_resume.endswith('.doc') or 
+                clean_resume.endswith('.docx') or 
+                clean_resume.startswith('http')
+            )
+            if not is_valid_route:
+                frappe.throw(_("Invalid resume file format! Strictly PDF (.pdf) or Word (.doc, .docx) format is accepted."))

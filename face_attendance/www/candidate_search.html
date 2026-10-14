@@ -18,6 +18,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    [v-cloak] { display: none !important; }
+
     /* ========================================================= */
     /* CLEAN WARM MONOCHROME / STONE PALETTE                     */
     /* STRICTLY NO BLUE, NO GREEN, NO DARK MODE                  */
@@ -638,6 +640,108 @@
       background: var(--btn-solid-hover);
     }
 
+    .comm-btn-edit {
+      border-color: #93c5fd;
+      color: #1d4ed8;
+      background: #eff6ff;
+    }
+    .comm-btn-edit:hover {
+      background: #dbeafe;
+    }
+    .comm-btn-delete {
+      border-color: #fca5a5;
+      color: #dc2626;
+      background: #fef2f2;
+    }
+    .comm-btn-delete:hover {
+      background: #fee2e2;
+    }
+    .btn-danger-outline {
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #f87171;
+      background: #fef2f2;
+      color: #b91c1c;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .btn-danger-outline:hover:not(:disabled) {
+      background: #fee2e2;
+      border-color: #dc2626;
+    }
+    .btn-danger-outline:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .edit-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-field.full-width {
+      grid-column: span 2;
+    }
+    .form-field label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-base);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+    }
+    .edit-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-light);
+      background: var(--bg-subtle);
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+    }
+    .alert-banner {
+      margin: 0 16px 12px 16px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .alert-success {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+    .alert-error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+
     /* Pagination */
     .pagination-bar {
       display: flex;
@@ -707,12 +811,321 @@
       justify-content: center;
       color: var(--text-muted);
     }
+
+    /* ========================================================= */
+    /* CANDIDATE PROFILE DOSSIER & RICH METADATA PILLS           */
+    /* ========================================================= */
+    .cand-dossier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 8px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-base);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.76rem;
+      margin-top: 2px;
+    }
+
+    .dossier-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dossier-pill strong {
+      color: var(--text-primary);
+    }
+
+    .dossier-pill i {
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+
+    .comm-btn-profile {
+      background: #18181b !important;
+      color: #ffffff !important;
+      border-color: #18181b !important;
+      font-weight: 700 !important;
+    }
+    .comm-btn-profile:hover {
+      background: #27272a !important;
+      color: #ffffff !important;
+    }
+
+    /* PROFILE PREVIEW MODAL / SLIDE-OVER */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .profile-modal {
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 860px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--border-base);
+      animation: slideUp 0.18s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(12px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .modal-head {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-base);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .modal-head-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .modal-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #18181b;
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-title-box h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .modal-title-box p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 2px 0 0 0;
+    }
+
+    .btn-close-modal {
+      background: #f4f4f5;
+      border: 1px solid var(--border-base);
+      color: var(--text-secondary);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.15s ease;
+    }
+    .btn-close-modal:hover {
+      background: #e4e4e7;
+      color: #000000;
+    }
+
+    /* Modal Tabs Bar */
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 10px 24px;
+      background: #fcfcfb;
+      border-bottom: 1px solid var(--border-base);
+    }
+
+    .modal-tab-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .modal-tab-btn.active {
+      background: #ffffff;
+      color: #18181b;
+      border-color: var(--border-base);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Modal Metrics Cards */
+    .modal-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .m-stat-box {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-base);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .m-stat-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .m-stat-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+
+    /* Modal Details Grid */
+    .m-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .m-card-panel {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .m-panel-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-base);
+    }
+
+    .m-row {
+      display: flex;
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+    .m-row:last-child { margin-bottom: 0; }
+    .m-row-label {
+      width: 140px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .m-row-val {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .resume-iframe-container {
+      width: 100%;
+      height: 580px;
+      border: 1px solid var(--border-base);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fbfbfa;
+    }
+
+    .resume-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+  
+    /* Universal App Suite Navigation */
+    .suite-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-subtle, #f1ede4);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-base, #e2ddd3);
+    }
+
+    .suite-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary, #52525b);
+      text-decoration: none;
+      border-radius: 7px;
+      transition: all 0.15s ease;
+    }
+
+    .suite-link:hover {
+      color: var(--text-primary, #18181b);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .suite-link.active {
+      background: #ffffff;
+      color: var(--text-primary, #18181b);
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
   </style>
 </head>
 <body>
 
 {% raw %}
-  <div id="app">
+  <div id="app" v-cloak>
     
     <!-- Top Nav Header -->
     <header class="top-navbar">
@@ -727,6 +1140,8 @@
           </div>
         </div>
 
+        
+        <!-- Universal App Suite Navigation -->
         <div class="nav-links">
           <a href="/apply" target="_blank" class="nav-btn">
             <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i>
@@ -893,8 +1308,19 @@
               <span v-if="searchQuery" style="color: var(--text-muted);">&bull; Query: <i>"{{ searchQuery }}"</i></span>
             </div>
 
-            <div class="sort-control">
-              <label for="sort_by">Rank By:</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button 
+                type="button" 
+                class="btn-danger-outline" 
+                @click="confirmDeleteAll" 
+                :disabled="totalCount === 0 && candidates.length === 0"
+                title="Permanently wipe or clear all candidates from Frappe register">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                <span>Delete All ({{ totalCount }})</span>
+              </button>
+
+              <div class="sort-control">
+                <label for="sort_by">Rank By:</label>
               <select id="sort_by" class="sort-select" v-model="sortBy" @change="triggerSearch(1)">
                 <option value="relevance">🌟 Best Match (Relevance Score DESC)</option>
                 <option value="experience_desc">Experience (High to Low)</option>
@@ -974,16 +1400,21 @@
                   <i data-lucide="indian-rupee" style="width: 13px; height: 13px;"></i>
                   <span>Expected: <b>₹{{ cand.expected_ctc.toLocaleString('en-IN') }}</b></span>
                 </div>
-                <div class="meta-chip" v-if="cand.resume">
-                  <i data-lucide="file-check" style="width: 13px; height: 13px;"></i>
-                  <span>PDF Resume Attached</span>
+                <!-- Plan B Resume Status Badge -->
+                <div class="meta-chip" v-if="cand.is_uploaded_resume" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:600;">
+                  <i data-lucide="file-check" style="width: 13px; height: 13px; color:#059669;"></i>
+                  <span>Original Resume (PDF/Word)</span>
+                </div>
+                <div class="meta-chip" v-else style="background:var(--bg-subtle); border-color:var(--border-base); color:var(--text-muted);">
+                  <i data-lucide="file-x" style="width: 13px; height: 13px;"></i>
+                  <span>No File Uploaded</span>
                 </div>
               </div>
 
               <!-- Skills & Profile Tags -->
               <div class="cand-tags-wrap" v-if="cand.tags_list && cand.tags_list.length">
                 <span 
-                  v-for="t in cand.tags_list" 
+                  v-for="t in getUniqueTags(cand.tags_list)" 
                   :key="t" 
                   class="skill-tag"
                   :class="{ 'highlight-tag': isTagMatched(t) }">
@@ -991,10 +1422,35 @@
                 </span>
               </div>
 
-              <!-- HR Notes Snippet -->
-              <div class="cand-notes-box" v-if="cand.hr_notes">
-                <b>HR Remark:</b> {{ cand.hr_notes }}
+              <!-- Up-to-Date Candidate Dossier Details Strip -->
+              <div class="cand-dossier-grid">
+                <div class="dossier-pill" v-if="cand.languages" title="Languages Known">
+                  <i data-lucide="languages" style="width: 13px; height: 13px;"></i>
+                  <span><b>Languages:</b> {{ cand.languages }}</span>
+                </div>
+                <div class="dossier-pill" v-if="cand.education" title="Education Qualification">
+                  <i data-lucide="graduation-cap" style="width: 13px; height: 13px;"></i>
+                  <span><b>Edu:</b> {{ cand.education }}</span>
+                </div>
+                <div class="dossier-pill" v-if="cand.relevant_exp" title="Relevant Work Experience">
+                  <i data-lucide="award" style="width: 13px; height: 13px;"></i>
+                  <span><b>Relevant:</b> {{ cand.relevant_exp }}</span>
+                </div>
+                <div class="dossier-pill" v-if="cand.industry" title="Industry Domain">
+                  <i data-lucide="building-2" style="width: 13px; height: 13px;"></i>
+                  <span><b>Industry:</b> {{ cand.industry }}</span>
+                </div>
+                <div class="dossier-pill" v-if="cand.assets" title="Vehicles & Assets">
+                  <i data-lucide="bike" style="width: 13px; height: 13px;"></i>
+                  <span><b>Assets:</b> {{ cand.assets }}</span>
+                </div>
+                <div class="dossier-pill" v-if="cand.salary_display" title="Salary Expectation">
+                  <i data-lucide="wallet" style="width: 13px; height: 13px;"></i>
+                  <span><b>Salary:</b> {{ cand.salary_display }}</span>
+                </div>
               </div>
+
+
 
               <!-- Actions Bar -->
               <div class="card-actions-bar">
@@ -1021,12 +1477,43 @@
                     <span>Email</span>
                   </a>
 
-                  <!-- PDF Resume Link -->
-                  <a v-if="cand.resume" :href="cand.resume" target="_blank" class="comm-btn" title="View PDF Resume">
+                  <!-- View Full Profile Dossier Modal Button -->
+                  <button type="button" class="comm-btn comm-btn-profile" @click="openCandidateProfile(cand)" title="Open Interactive Candidate Profile">
+                    <i data-lucide="user-check" style="width: 13px; height: 13px;"></i>
+                    <span>View Profile</span>
+                  </button>
+
+                  <button type="button" class="comm-btn comm-btn-edit" @click="openEditModal(cand)" title="Edit Candidate Details">
+                    <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+                    <span>Edit</span>
+                  </button>
+
+                  <button type="button" class="comm-btn comm-btn-delete" @click="deleteCandidate(cand)" title="Delete Candidate Profile">
+                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                    <span>Delete</span>
+                  </button>
+
+                  <!-- Plan B: Original Uploaded Resume vs No File Attached -->
+                  <a 
+                    v-if="cand.is_uploaded_resume && cand.resume"
+                    :href="cand.resume" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="comm-btn" 
+                    style="border-color:#2563eb; color:#1d4ed8; font-weight:600; background:#eff6ff;" 
+                    title="Open authentic resume document uploaded by candidate">
                     <i data-lucide="file-text" style="width: 13px; height: 13px;"></i>
-                    <span>Resume (PDF)</span>
+                    <span>View Original Resume (PDF/Word)</span>
                   </a>
-                </div>
+                  <div 
+                    v-else
+                    class="comm-btn" 
+                    style="border-color:var(--border-base); color:var(--text-muted); background:var(--bg-subtle); cursor:default; font-size:0.75rem;" 
+                    title="This candidate only filled the digital registration form; no external file was uploaded.">
+                    <i data-lucide="file-x" style="width: 12px; height: 12px; color:var(--text-muted);"></i>
+                    <span>No File Uploaded</span>
+                  </div>
+                  </div>
 
                 <!-- Desk Deep Link & Status Actions -->
                 <div style="display: flex; align-items: center; gap: 6px;">
@@ -1085,6 +1572,339 @@
 
       </div>
 
+
+    <!-- ========================================================= -->
+    <!-- CANDIDATE PROFILE PREVIEW MODAL / SLIDE-OVER SHEET        -->
+    <!-- ========================================================= -->
+    <div class="modal-backdrop" v-if="showProfileModal" @click.self="closeCandidateProfile">
+      <div class="profile-modal" v-if="selectedCandidate">
+        
+        <!-- Modal Head -->
+        <div class="modal-head">
+          <div class="modal-head-left">
+            <div class="modal-avatar">
+              {{ getInitials(selectedCandidate.candidate_name) }}
+            </div>
+            <div class="modal-title-box">
+              <h3>{{ selectedCandidate.candidate_name }}</h3>
+              <p>
+                {{ selectedCandidate.position_applied }} &bull; {{ selectedCandidate.current_location }} &bull; 
+                <span style="color:#059669; font-weight:700;">{{ selectedCandidate.status }}</span>
+              </p>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <select 
+              class="sort-select" 
+              style="height: 34px; font-size: 0.76rem;" 
+              :value="selectedCandidate.status" 
+              @change="updateStatus(selectedCandidate, $event.target.value)">
+              <option value="New">Status: New</option>
+              <option value="Screening">Status: Screening</option>
+              <option value="Interview">Status: Interview</option>
+              <option value="Offered">Status: Offered</option>
+              <option value="Hired">Status: Hired</option>
+              <option value="Rejected">Status: Rejected</option>
+            </select>
+            <button type="button" class="comm-btn comm-btn-edit" @click="openEditModal(selectedCandidate)" title="Edit Candidate Details">
+              <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+              <span>Edit</span>
+            </button>
+            <button type="button" class="comm-btn comm-btn-delete" @click="deleteCandidate(selectedCandidate)" title="Delete this Candidate">
+              <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              <span>Delete</span>
+            </button>
+            <button class="btn-close-modal" @click="closeCandidateProfile" title="Close">&times;</button>
+          </div>
+        </div>
+
+        <!-- Modal Tabs -->
+        <div class="modal-tabs">
+          <button 
+            type="button" 
+            class="modal-tab-btn" 
+            :class="{ active: modalTab === 'dossier' }" 
+            @click="modalTab = 'dossier'">
+            <i data-lucide="file-badge" style="width: 14px; height: 14px;"></i>
+            <span>Candidate Dossier</span>
+          </button>
+          <button 
+            v-if="selectedCandidate.is_uploaded_resume && selectedCandidate.resume"
+            type="button" 
+            class="modal-tab-btn" 
+            :class="{ active: modalTab === 'resume' }" 
+            @click="modalTab = 'resume'">
+            <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+            <span>Original Uploaded Resume (PDF/Word)</span>
+          </button>
+        </div>
+
+        <!-- Modal Body: Tab 1 Dossier -->
+        <div class="modal-body" v-if="modalTab === 'dossier'">
+          <!-- Top Stats -->
+          <div class="modal-stats-grid">
+            <div class="m-stat-box">
+              <div class="m-stat-label">Total Experience</div>
+              <div class="m-stat-val">{{ selectedCandidate.experience_years }} Years</div>
+            </div>
+            <div class="m-stat-box">
+              <div class="m-stat-label">Notice Period</div>
+              <div class="m-stat-val">{{ selectedCandidate.notice_period }}</div>
+            </div>
+            <div class="m-stat-box">
+              <div class="m-stat-label">Expected CTC</div>
+              <div class="m-stat-val">{{ selectedCandidate.salary_display || 'Disclosed' }}</div>
+            </div>
+            <div class="m-stat-box">
+              <div class="m-stat-label">Relevance Match</div>
+              <div class="m-stat-val" style="color:#059669;">{{ selectedCandidate.relevance_score }}%</div>
+            </div>
+          </div>
+
+          <!-- Contact Quick Action Bar -->
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a 
+              :href="'https://wa.me/' + selectedCandidate.clean_phone + '?text=' + encodeURIComponent('Hello ' + selectedCandidate.candidate_name + ', contacting you regarding ' + selectedCandidate.position_applied)" 
+              target="_blank" 
+              class="comm-btn comm-btn-primary" 
+              style="padding:8px 14px; font-size:0.8rem;">
+              <i data-lucide="message-circle" style="width: 14px; height: 14px;"></i>
+              <span>WhatsApp ({{ selectedCandidate.phone }})</span>
+            </a>
+            <a 
+              :href="'tel:' + selectedCandidate.phone" 
+              class="comm-btn" 
+              style="padding:8px 14px; font-size:0.8rem;">
+              <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+              <span>Call Candidate</span>
+            </a>
+            <a 
+              :href="'mailto:' + selectedCandidate.email" 
+              class="comm-btn" 
+              style="padding:8px 14px; font-size:0.8rem;">
+              <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
+              <span>Email Candidate</span>
+            </a>
+            <a 
+              v-if="selectedCandidate.is_uploaded_resume && selectedCandidate.resume"
+              :href="selectedCandidate.resume" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="comm-btn" 
+              style="padding:8px 14px; font-size:0.8rem; border-color:#2563eb; color:#1d4ed8; font-weight:600; background:#eff6ff;"
+              title="Open genuine resume document uploaded by candidate">
+              <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+              <span>Original Uploaded Resume</span>
+            </a>
+
+          </div>
+
+          <!-- Detailed Dossier Panels -->
+          <div class="m-details-grid">
+            <div class="m-card-panel">
+              <div class="m-panel-title">Qualifications & Background</div>
+              <div class="m-row" v-if="selectedCandidate.education">
+                <span class="m-row-label">Education:</span>
+                <span class="m-row-val">{{ selectedCandidate.education }}</span>
+              </div>
+              <div class="m-row" v-if="selectedCandidate.languages">
+                <span class="m-row-label">Languages Known:</span>
+                <span class="m-row-val">{{ selectedCandidate.languages }}</span>
+              </div>
+              <div class="m-row" v-if="selectedCandidate.relevant_exp">
+                <span class="m-row-label">Relevant Exp:</span>
+                <span class="m-row-val">{{ selectedCandidate.relevant_exp }}</span>
+              </div>
+              <div class="m-row" v-if="selectedCandidate.industry">
+                <span class="m-row-label">Industry:</span>
+                <span class="m-row-val">{{ selectedCandidate.industry }}</span>
+              </div>
+              <div class="m-row" v-if="selectedCandidate.assets">
+                <span class="m-row-label">Assets & Vehicles:</span>
+                <span class="m-row-val">{{ selectedCandidate.assets }}</span>
+              </div>
+              <div class="m-row">
+                <span class="m-row-label">Source Platform:</span>
+                <span class="m-row-val">{{ selectedCandidate.source }}</span>
+              </div>
+            </div>
+
+            <div class="m-card-panel">
+              <div class="m-panel-title">Key Skills & Core Competencies</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <span 
+                  v-for="sk in selectedCandidate.tags_list" 
+                  :key="sk" 
+                  class="skill-tag" 
+                  style="font-size:0.75rem; padding:4px 10px;">
+                  #{{ sk }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HR Evaluation & Editable Notes -->
+          <div class="m-card-panel">
+            <div class="m-panel-title">HR Evaluation Notes & Updation</div>
+            <textarea 
+              v-model="editNotes" 
+              class="search-input" 
+              style="width:100%; min-height:85px; font-size:0.8rem; padding:10px; border-radius:8px; resize:vertical; font-family:monospace;"
+              placeholder="Add or update recruitment interview notes, remarks, candidate salary expectations..."></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <span v-if="notesMsg" style="font-size:0.78rem; color:#059669; font-weight:700;">{{ notesMsg }}</span>
+              <span v-else></span>
+              <button 
+                type="button" 
+                class="comm-btn comm-btn-primary" 
+                :disabled="isSavingNotes" 
+                @click="
+saveCandidateNotes">
+                <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                <span>{{ isSavingNotes ? 'Saving...' : 'Save Updated Notes' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Body: Tab 2 Live Resume Preview -->
+        <div class="modal-body" v-if="modalTab === 'resume'">
+          <div v-if="selectedCandidate.resume" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">
+                  Official Candidate Resume (PDF) &bull; {{ selectedCandidate.candidate_name }}
+                </span>
+                <span style="background:#eff6ff; color:#1d4ed8; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #bfdbfe;">
+                  PDF Document
+                </span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <a 
+                  :href="selectedCandidate.resume" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="comm-btn comm-btn-primary">
+                  <i data-lucide="file-text" style="width: 13px; height: 13px;"></i>
+                  <span>Open Full PDF in New Tab</span>
+                </a>
+              </div>
+            </div>
+            <div class="resume-iframe-container">
+              <iframe 
+                :src="selectedCandidate.resume" 
+                class="resume-iframe">
+              </iframe>
+            </div>
+          </div>
+          <div v-else style="padding: 48px 20px; text-align: center; color: var(--text-muted); background: var(--bg-subtle); border-radius: 12px; border: 1px dashed var(--border-base);">
+            <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 4px;">No Resume Available</div>
+            <div style="font-size: 0.85rem;">No resume record exists for this candidate.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    
+    <!-- ========================================================= -->
+    <!-- EDIT CANDIDATE PROFILE MODAL                              -->
+    <!-- ========================================================= -->
+    <div class="modal-backdrop" v-if="showEditModal" @click.self="closeEditModal" style="z-index: 9999;">
+      <div class="profile-modal edit-profile-dialog" v-if="editForm" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-head">
+          <div class="modal-head-left">
+            <div class="modal-avatar" style="background: #2563eb; color: #fff;">
+              <i data-lucide="user-check" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="modal-title-box">
+              <h3>Edit Candidate Profile</h3>
+              <p>{{ editForm.candidate_name }} &bull; {{ editForm.candidate_id }}</p>
+            </div>
+          </div>
+          <button class="btn-close-modal" @click="closeEditModal" title="Close">&times;</button>
+        </div>
+
+        <form @submit.prevent="saveCandidateProfile" class="edit-modal-body">
+          <div class="edit-form-grid">
+            <div class="form-field">
+              <label>Full Name *</label>
+              <input type="text" class="form-input" v-model="editForm.candidate_name" required placeholder="Candidate Full Name">
+            </div>
+
+            <div class="form-field">
+              <label>Position Applied</label>
+              <input type="text" class="form-input" v-model="editForm.position_applied" placeholder="e.g. Field Sales Executive">
+            </div>
+
+            <div class="form-field">
+              <label>Mobile Number</label>
+              <input type="text" class="form-input" v-model="editForm.phone" placeholder="e.g. 9876543210">
+            </div>
+
+            <div class="form-field">
+              <label>Email Address</label>
+              <input type="email" class="form-input" v-model="editForm.email" placeholder="e.g. candidate@example.com">
+            </div>
+
+            <div class="form-field">
+              <label>Experience (Years)</label>
+              <input type="number" step="0.5" min="0" class="form-input" v-model="editForm.experience_years" placeholder="e.g. 2.5">
+            </div>
+
+            <div class="form-field">
+              <label>Expected CTC (₹/Year or Month)</label>
+              <input type="number" step="1000" min="0" class="form-input" v-model="editForm.expected_ctc" placeholder="e.g. 240000">
+            </div>
+
+            <div class="form-field">
+              <label>Current Location / City</label>
+              <input type="text" class="form-input" v-model="editForm.current_location" placeholder="e.g. Patna, Bihar">
+            </div>
+
+            <div class="form-field">
+              <label>Recruitment Status</label>
+              <select class="form-select" v-model="editForm.status">
+                <option value="New">New</option>
+                <option value="Screening">Screening</option>
+                <option value="Interview">Interview</option>
+                <option value="Offered">Offered</option>
+                <option value="Hired">Hired</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div class="form-field full-width">
+              <label>Skills & Profile Tags (Comma-separated)</label>
+              <input type="text" class="form-input" v-model="editForm.profile_tags" placeholder="e.g. Sales, Negotiation, B2B, Hindi, Basic Excel">
+            </div>
+
+            <div class="form-field full-width">
+              <label>Resume File URL (PDF / Word document)</label>
+              <input type="url" class="form-input" v-model="editForm.resume" placeholder="https://resources.workindia.in/...resume.pdf">
+            </div>
+
+            <div class="form-field full-width">
+              <label>HR Notes & Interview Remarks</label>
+              <textarea class="form-textarea" rows="3" v-model="editForm.hr_notes" placeholder="Enter HR feedback, screening notes, or interview progress..."></textarea>
+            </div>
+          </div>
+
+          <div v-if="editMsg" :class="['alert-banner', editSuccess ? 'alert-success' : 'alert-error']">
+            {{ editMsg }}
+          </div>
+
+          <div class="edit-modal-footer">
+            <button type="button" class="nav-btn" @click="closeEditModal" :disabled="isSavingCandidate">Cancel</button>
+            <button type="submit" class="nav-btn nav-btn-solid" :disabled="isSavingCandidate" style="background: #2563eb; color: #fff;">
+              <span v-if="isSavingCandidate">Saving...</span>
+              <span v-else>Save Changes</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     </main>
   </div>
 {% endraw %}
@@ -1102,7 +1922,7 @@
         const selectedNotice = ref([]);
         const selectedLocation = ref('');
         const maxCtc = ref('');
-        const sortBy = ref('relevance'); // Default to Best Match (Relevance DESC)
+        const sortBy = ref('relevance');
         
         const currentPage = ref(1);
         const pageSize = ref(6);
@@ -1111,9 +1931,22 @@
         
         const candidates = ref([]);
         const availableTags = ref([]);
+        const selectedCandidate = ref(null);
+        const showProfileModal = ref(false);
+        const modalTab = ref('dossier');
+        const editNotes = ref('');
+        const isSavingNotes = ref(false);
+        const notesMsg = ref('');
         const availableLocations = ref([]);
         const availablePositions = ref([]);
         const isLoading = ref(false);
+
+        // Edit Profile State
+        const showEditModal = ref(false);
+        const editForm = ref(null);
+        const isSavingCandidate = ref(false);
+        const editMsg = ref('');
+        const editSuccess = ref(false);
 
         const fetchCandidates = async () => {
           isLoading.value = true;
@@ -1224,6 +2057,66 @@
           return false;
         };
 
+        const getUniqueTags = (tags) => {
+          if (!tags || !Array.isArray(tags)) return [];
+          const seen = new Set();
+          const clean = [];
+          const junk = new Set(['-', '--', 'n/a', 'na', 'none', 'null', 'workindia', 'candidate', 'job', 'portal', '+', 'other']);
+          for (const t of tags) {
+            if (!t) continue;
+            const str = String(t).trim().replace(/^[^\w]+|[^\w]+$/g, '');
+            const lower = str.toLowerCase();
+            if (!str || str.length < 2 || junk.has(lower) || seen.has(lower)) continue;
+            seen.add(lower);
+            clean.push(str);
+          }
+          return clean;
+        };
+
+        const getInitials = (name) => {
+          if (!name) return 'C';
+          return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        };
+
+        const openCandidateProfile = (cand) => {
+          selectedCandidate.value = cand;
+          editNotes.value = cand.hr_notes || '';
+          notesMsg.value = '';
+          modalTab.value = 'dossier';
+          showProfileModal.value = true;
+          nextTick(() => lucide.createIcons());
+        };
+
+        const closeCandidateProfile = () => {
+          showProfileModal.value = false;
+        };
+
+        const saveCandidateNotes = async () => {
+          if (!selectedCandidate.value) return;
+          isSavingNotes.value = true;
+          notesMsg.value = '';
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_candidate_dossier', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                candidate_id: selectedCandidate.value.name,
+                notes: editNotes.value
+              })
+            });
+            const json = await res.json();
+            if (json.message && json.message.success) {
+              selectedCandidate.value.hr_notes = editNotes.value;
+              notesMsg.value = '✓ Successfully saved to Frappe database!';
+              setTimeout(() => { notesMsg.value = ''; }, 3000);
+            }
+          } catch(e) {
+            console.error('Save notes error:', e);
+          } finally {
+            isSavingNotes.value = false;
+          }
+        };
+
         const updateStatus = async (candidate, newStatus) => {
           try {
             const res = await fetch(`/api/method/face_attendance.api.update_candidate_status?candidate_id=${encodeURIComponent(candidate.name)}&new_status=${encodeURIComponent(newStatus)}`);
@@ -1234,6 +2127,123 @@
             }
           } catch(err) {
             console.error('Status update error:', err);
+          }
+        };
+
+        const openEditModal = (cand) => {
+          if (!cand) return;
+          editForm.value = {
+            candidate_id: cand.name,
+            candidate_name: cand.candidate_name || '',
+            position_applied: cand.position_applied || '',
+            phone: cand.phone || '',
+            email: cand.email || '',
+            experience_years: cand.experience_years !== undefined ? cand.experience_years : '',
+            expected_ctc: cand.expected_ctc !== undefined ? cand.expected_ctc : '',
+            current_location: cand.current_location || '',
+            status: cand.status || 'New',
+            profile_tags: Array.isArray(cand.profile_tags) ? cand.profile_tags.join(', ') : (cand.profile_tags || ''),
+            resume: cand.resume || '',
+            hr_notes: cand.hr_notes || ''
+          };
+          editMsg.value = '';
+          editSuccess.value = false;
+          showEditModal.value = true;
+        };
+
+        const closeEditModal = () => {
+          showEditModal.value = false;
+        };
+
+        const saveCandidateProfile = async () => {
+          if (!editForm.value || !editForm.value.candidate_id) return;
+          isSavingCandidate.value = true;
+          editMsg.value = '';
+          editSuccess.value = false;
+
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_job_candidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(editForm.value)
+            });
+            const json = await res.json();
+            if (json.message && json.message.success) {
+              editSuccess.value = true;
+              editMsg.value = '✓ Successfully updated candidate profile in Frappe!';
+              fetchCandidates();
+              if (selectedCandidate.value && selectedCandidate.value.name === editForm.value.candidate_id) {
+                Object.assign(selectedCandidate.value, editForm.value);
+              }
+              setTimeout(() => {
+                showEditModal.value = false;
+              }, 1200);
+            } else {
+              editSuccess.value = false;
+              editMsg.value = json.message?.message || 'Error saving candidate profile.';
+            }
+          } catch(err) {
+            editSuccess.value = false;
+            editMsg.value = 'Failed to connect to Frappe server: ' + err.message;
+          } finally {
+            isSavingCandidate.value = false;
+          }
+        };
+
+        const deleteCandidate = async (cand) => {
+          if (!cand || !cand.name) return;
+          const candName = cand.candidate_name || cand.name;
+          if (!confirm(`Are you sure you want to permanently delete candidate "${candName}" from Frappe?`)) {
+            return;
+          }
+
+          try {
+            const res = await fetch('/api/method/face_attendance.api.delete_job_candidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ candidate_id: cand.name })
+            });
+            const json = await res.json();
+            if (json.message && json.message.success) {
+              if (showProfileModal.value && selectedCandidate.value?.name === cand.name) {
+                showProfileModal.value = false;
+              }
+              fetchCandidates();
+            } else {
+              alert(json.message?.message || 'Failed to delete candidate.');
+            }
+          } catch(err) {
+            alert('Delete Error: ' + err.message);
+          }
+        };
+
+        const confirmDeleteAll = async () => {
+          if (totalCount.value === 0) {
+            alert('No candidates found to delete.');
+            return;
+          }
+          const prompt = confirm(`⚠️ Are you sure you want to delete ALL ${totalCount.value} candidates from Frappe?\n\nThis will permanently remove all candidate profiles from the database!`);
+          if (!prompt) return;
+
+          try {
+            isLoading.value = true;
+            const res = await fetch('/api/method/face_attendance.api.delete_all_job_candidates', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+            });
+            const json = await res.json();
+            if (json.message && json.message.success) {
+              alert(json.message.message || 'All candidate profiles deleted successfully!');
+              if (showProfileModal.value) showProfileModal.value = false;
+              fetchCandidates();
+            } else {
+              alert(json.message?.message || 'Failed to delete all candidates.');
+            }
+          } catch(err) {
+            alert('Delete All Error: ' + err.message);
+          } finally {
+            isLoading.value = false;
           }
         };
 
@@ -1281,10 +2291,32 @@
           resetAllFilters,
           changePage,
           isTagMatched,
-          updateStatus
+          updateStatus,
+          selectedCandidate,
+          showProfileModal,
+          modalTab,
+          editNotes,
+          isSavingNotes,
+          notesMsg,
+          getInitials,
+          openCandidateProfile,
+          getUniqueTags,
+          closeCandidateProfile,
+          saveCandidateNotes,
+          showEditModal,
+          editForm,
+          isSavingCandidate,
+          editMsg,
+          editSuccess,
+          openEditModal,
+          closeEditModal,
+          saveCandidateProfile,
+          deleteCandidate,
+          confirmDeleteAll
         };
       }
     }).mount('#app');
+
   </script>
 </body>
 </html>
