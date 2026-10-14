@@ -542,6 +542,46 @@
       width: 100%;
     }
 
+    /* Overtime & HR Approval Receipt Notification */
+    .overtime-approval-notice {
+      width: 100%;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: var(--radius-element);
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 4px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .ot-icon-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ea580c;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .ot-status-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: #ffedd5;
+      color: #c2410c;
+      border: 1px solid #fdba74;
+      border-radius: var(--radius-full);
+      padding: 3px 8px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
     .photo-cell {
       display: flex;
       flex-direction: column;
@@ -829,6 +869,29 @@
               {{ Number(attendanceSuccess.latitude).toFixed(4) }}, {{ Number(attendanceSuccess.longitude).toFixed(4) }}
             </span>
           </div>
+        </div>
+
+        <!-- Extra Time / Overtime Verified & HR Approval Notice -->
+        <div v-if="attendanceSuccess.is_overtime" class="overtime-approval-notice">
+          <div class="ot-icon-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div style="flex: 1; text-align: left;">
+            <div style="font-weight: 700; font-size: 0.82rem; color: #18181b; display: flex; align-items: center; gap: 6px;">
+              <span>Extra Time Verified:</span>
+              <span style="color: #ea580c; font-weight: 800;">{{ attendanceSuccess.overtime_duration }}</span>
+            </div>
+            <div style="font-size: 0.72rem; color: #52525b; margin-top: 2px; line-height: 1.35;">
+              Full workday completed. Overtime request submitted for HR verification and first approval.
+            </div>
+            <div v-if="attendanceSuccess.overtime_request" style="font-size: 0.68rem; color: #71717a; margin-top: 3px; font-family: monospace;">
+              Ref: {{ attendanceSuccess.overtime_request }} &bull; Status: {{ attendanceSuccess.overtime_status || 'Pending Approval' }}
+            </div>
+          </div>
+          <span class="ot-status-pill">Pending HR</span>
         </div>
 
         <!-- Verification Snapshot -->
@@ -1197,9 +1260,9 @@
           }
         };
 
-        // Auto Reset after 3 seconds
+        // Auto Reset
         const startAutoReset = () => {
-          countdownTimer.value = 3;
+          countdownTimer.value = attendanceSuccess.value?.is_overtime ? 6 : 4;
           if (resetInterval) clearInterval(resetInterval);
           resetInterval = setInterval(() => {
             countdownTimer.value -= 1;

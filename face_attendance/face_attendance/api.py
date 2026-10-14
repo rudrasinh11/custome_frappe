@@ -116,10 +116,15 @@ def get_timing_classification(dt: datetime, log_type: str, profile: dict | None 
             ot_str = f"+{ot_minutes // 60}h {ot_minutes % 60}m" if ot_minutes >= 60 else f"+{ot_minutes}m"
             return {
                 "module": "Overtime", 
-                "label": f"Overtime ({ot_str})", 
-                "description": "Overtime completed", 
+                "label": f"Overtime ({ot_str}) • Pending HR Approval", 
+                "description": "Extra time worked past scheduled shift. Requires HR approval.", 
                 "badge": "overtime",
-                "shift": timing_str
+                "is_overtime": True,
+                "overtime_minutes": ot_minutes,
+                "overtime_hours": round(ot_minutes / 60.0, 2),
+                "overtime_duration": ot_str,
+                "shift": timing_str,
+                "shift_end_raw": str(shift_end)
             }
 
 @frappe.whitelist(allow_guest=True)
@@ -546,13 +551,61 @@ def mark_face_pin_attendance(
     )
     frappe.db.commit()
 
+    # 6. Check and create Employee Overtime Request if extra time worked past full day
+    overtime_request_name = None
+    overtime_status = None
+    if resolved_log_type == "OUT" and timing_info.get("is_overtime"):
+        try:
+            ot_hours = timing_info.get("overtime_hours", 0)
+            ot_duration_str = timing_info.get("overtime_duration", "")
+            shift_start_str = timing_info.get("shift_end_raw", "18:30:00")
+            
+            existing_ot = frappe.db.get_value(
+                "Employee Overtime Request",
+                {"employee": profile.employee, "overtime_date": today, "docstatus": ["!=", 2]},
+                ["name", "status"],
+                as_dict=True
+            )
+            if existing_ot:
+                ot_doc = frappe.get_doc("Employee Overtime Request", existing_ot.name)
+                ot_doc.end_time = now_dt.strftime("%H:%M:%S")
+                ot_doc.overtime_hours = ot_hours
+                ot_doc.reason = f"Kiosk Punch OUT: Verified extra time worked ({ot_duration_str}). Awaiting HR approval."
+                ot_doc.save(ignore_permissions=True)
+                overtime_request_name = ot_doc.name
+                overtime_status = ot_doc.status
+            else:
+                ot_doc = frappe.get_doc({
+                    "doctype": "Employee Overtime Request",
+                    "naming_series": "OT-.YYYY.-.#####",
+                    "employee": profile.employee,
+                    "employee_name": profile.employee_name,
+                    "department": profile.department or "",
+                    "designation": profile.designation or "",
+                    "overtime_date": today,
+                    "overtime_type": "Regular Overtime",
+                    "status": "Pending Approval",
+                    "start_time": shift_start_str,
+                    "end_time": now_dt.strftime("%H:%M:%S"),
+                    "overtime_hours": ot_hours,
+                    "reason": f"Kiosk Punch OUT: Verified extra time worked ({ot_duration_str}) past scheduled shift end. Sent for HR approval."
+                })
+                ot_doc.insert(ignore_permissions=True)
+                overtime_request_name = ot_doc.name
+                overtime_status = "Pending Approval"
+        except Exception as ot_err:
+            frappe.log_error(f"Error creating Overtime Request: {ot_err}", "Overtime Auto Request")
+
     # Clear internal server message log to prevent unwanted telemetry/system notifications from leaking to the kiosk
     frappe.local.message_log = []
     if hasattr(frappe.local, "response") and "_server_messages" in frappe.local.response:
         del frappe.local.response["_server_messages"]
 
     if resolved_log_type == "OUT":
-        user_msg = f"{profile.employee_name} was already logged in. Successfully logged OUT!"
+        if timing_info.get("is_overtime"):
+            user_msg = f"{profile.employee_name} logged OUT. Extra time ({timing_info['overtime_duration']}) detected and sent for HR approval."
+        else:
+            user_msg = f"{profile.employee_name} was already logged in. Successfully logged OUT!"
     elif latest_today_type == "OUT":
         user_msg = f"{profile.employee_name} was already logged out. Successfully logged IN!"
     else:
@@ -568,6 +621,11 @@ def mark_face_pin_attendance(
         "latitude": punch_lat,
         "longitude": punch_lon,
         "location": coords_str,
+        "is_overtime": bool(timing_info.get("is_overtime")),
+        "overtime_duration": timing_info.get("overtime_duration", ""),
+        "overtime_hours": timing_info.get("overtime_hours", 0),
+        "overtime_request": overtime_request_name,
+        "overtime_status": overtime_status or ("Pending HR Approval" if timing_info.get("is_overtime") else None),
         "shift_name": profile.shift_name or "Standard Shift",
         "shift_timing": timing_info.get("shift", "09:30 AM - 06:30 PM"),
         "timing_module": timing_info["module"],
