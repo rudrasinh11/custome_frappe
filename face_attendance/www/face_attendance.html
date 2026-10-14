@@ -594,6 +594,14 @@
       line-height: 1.4;
     }
 
+    /* Suppress any internal Frappe framework alert popups/modals */
+    .modal-backdrop, .msgprint-dialog, .frappe-alert, div[class*="msgprint"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
     /* Toast */
     .toast-pill {
       position: fixed;
@@ -873,6 +881,8 @@
         let selfieDetectionPromise = null;
 
         const showToast = (msg) => {
+          if (!msg || typeof msg !== 'string') return;
+          if (msg.includes('Milestone') || msg.includes('Telemetry') || msg.includes('already exists')) return;
           toast.value = msg;
           setTimeout(() => { if (toast.value === msg) toast.value = ''; }, 3000);
         };
@@ -1147,12 +1157,6 @@
               let errorMsg = 'Verification failed';
               if (result && result.message) {
                 errorMsg = result.message;
-              } else if (attData._server_messages) {
-                try {
-                  const msgs = JSON.parse(attData._server_messages);
-                  const firstMsg = JSON.parse(msgs[0]);
-                  errorMsg = firstMsg.message || errorMsg;
-                } catch(e) {}
               } else if (attData.exception) {
                 errorMsg = attData.exception.split(':').pop().trim();
               }

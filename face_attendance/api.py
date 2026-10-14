@@ -545,6 +545,11 @@ def mark_face_pin_attendance(
     )
     frappe.db.commit()
 
+    # Clear internal server message log to prevent unwanted telemetry/system notifications from leaking to the kiosk
+    frappe.local.message_log = []
+    if hasattr(frappe.local, "response") and "_server_messages" in frappe.local.response:
+        del frappe.local.response["_server_messages"]
+
     greeting = "Welcome" if resolved_log_type == "IN" else "Goodbye"
     return {
         "success": True,
