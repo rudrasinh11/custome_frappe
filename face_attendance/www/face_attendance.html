@@ -605,18 +605,24 @@
     /* Toast */
     .toast-pill {
       position: fixed;
-      bottom: 20px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--primary-solid);
-      color: var(--primary-text);
-      padding: 8px 16px;
+      background: #18181b;
+      color: #f4f4f5;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 10px 18px;
       border-radius: var(--radius-full);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      z-index: 100;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       animation: fadeIn 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 90vw;
+      text-align: center;
     }
   </style>
 </head>
@@ -882,9 +888,11 @@
 
         const showToast = (msg) => {
           if (!msg || typeof msg !== 'string') return;
-          if (msg.includes('Milestone') || msg.includes('Telemetry') || msg.includes('already exists')) return;
+          if (msg.includes('Milestone') || msg.includes('first_attendance_marked') || msg.includes('already exists')) {
+            msg = 'Candidate is already logged in. Next punch will log out.';
+          }
           toast.value = msg;
-          setTimeout(() => { if (toast.value === msg) toast.value = ''; }, 3000);
+          setTimeout(() => { if (toast.value === msg) toast.value = ''; }, 4000);
         };
 
         const updateClock = () => {
@@ -1151,6 +1159,7 @@
             if (result && result.success) {
               if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
               attendanceSuccess.value = result;
+              showToast(result.message || 'Attendance marked successfully!');
               startAutoReset();
               nextTick(() => lucide.createIcons());
             } else {
@@ -1169,13 +1178,6 @@
               } else if (result?.face_mismatch) {
                 securityError.value = {
                   title: 'Biometric Mismatch',
-                  message: errorMsg,
-                  selfiePhoto: capturedSelfie.value,
-                  targetPhoto: result.reference_photo
-                };
-              } else if (result?.cooldown) {
-                securityError.value = {
-                  title: 'Duplicate Punch Blocked',
                   message: errorMsg,
                   selfiePhoto: capturedSelfie.value,
                   targetPhoto: result.reference_photo

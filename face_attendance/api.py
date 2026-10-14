@@ -374,11 +374,12 @@ def mark_face_pin_attendance(
         # Only block if same punch direction was marked within 15 seconds
         if check_type == resolved_log_type and delta_seconds < 15:
             remaining_wait = int(15 - delta_seconds)
+            state_text = "already logged in" if check_type == "IN" else "already logged out"
             return {
                 "success": False,
                 "cooldown": True,
                 "reference_photo": profile.face_image or "",
-                "message": _(f"Duplicate punch blocked: You already marked {resolved_log_type} {int(delta_seconds)}s ago. Please wait {remaining_wait}s.")
+                "message": _(f"Candidate is {state_text}. Please wait {remaining_wait}s before punching again.")
             }
 
     # --- Geolocation Parsing (Latitude & Longitude) ---
@@ -550,7 +551,13 @@ def mark_face_pin_attendance(
     if hasattr(frappe.local, "response") and "_server_messages" in frappe.local.response:
         del frappe.local.response["_server_messages"]
 
-    greeting = "Welcome" if resolved_log_type == "IN" else "Goodbye"
+    if resolved_log_type == "OUT":
+        user_msg = f"{profile.employee_name} was already logged in. Successfully logged OUT!"
+    elif latest_today_type == "OUT":
+        user_msg = f"{profile.employee_name} was already logged out. Successfully logged IN!"
+    else:
+        user_msg = f"Welcome, {profile.employee_name}! Successfully logged IN!"
+
     return {
         "success": True,
         "employee_id": profile.employee,
@@ -572,7 +579,7 @@ def mark_face_pin_attendance(
         "captured_photo": photo_file_url,
         "match_status": match_status,
         "ai_confidence": ai_confidence or "",
-        "message": f"{greeting}, {profile.employee_name}! Marked {resolved_log_type}."
+        "message": user_msg
     }
 
 @frappe.whitelist(allow_guest=True)
