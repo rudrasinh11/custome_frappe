@@ -851,6 +851,18 @@ def search_job_candidates(
     location: str | None = None,
     max_ctc: float | None = None,
     tags: str | None = None,
+    filter_name: str | None = None,
+    filter_email: str | None = None,
+    filter_phone: str | None = None,
+    filter_role: str | None = None,
+    filter_location: str | None = None,
+    filter_expected_salary: str | float | None = None,
+    filter_domain: str | None = None,
+    domain: str | None = None,
+    filter_selection_status: str | None = None,
+    filter_group: str | None = None,
+    filter_selected_location: str | None = None,
+    filter_selected_by: str | None = None,
     sort_by: str = "relevance",
     page: int = 1,
     page_size: int = 6
@@ -874,7 +886,7 @@ def search_job_candidates(
             "position_applied", "current_location", "experience_years",
             "notice_period", "current_ctc", "expected_ctc", "resume",
             "source", "next_follow_up_date", "hr_notes", "profile_tags",
-            "creation"
+            "creation", "selection_status", "selected_by", "selected_location", "selected_role", "selected_group", "selected_at", "selected_by_location"
         ],
         limit=10000
     )
@@ -884,10 +896,12 @@ def search_job_candidates(
     selected_notice = [n.strip() for n in notice_periods.split(",") if n.strip()] if notice_periods else []
     selected_tags = [t.strip().lower() for t in tags.split(",") if t.strip()] if tags else []
     
-    # Tag aggregations across all candidates
+    # Aggregations across all candidates
     tag_counter = {}
     location_counter = {}
     position_counter = {}
+    group_counter = {}
+    domain_counter = {}
     
     for c in all_candidates:
         # Tally unique tags per candidate
@@ -903,6 +917,18 @@ def search_job_candidates(
         pos = (c.get("position_applied") or "").strip()
         if pos:
             position_counter[pos] = position_counter.get(pos, 0) + 1
+
+        # Tally candidate groups
+        grp = (c.get("selected_group") or "").strip()
+        if grp:
+            group_counter[grp] = group_counter.get(grp, 0) + 1
+
+        # Tally domain / industry
+        raw_notes = c.get("hr_notes") or ""
+        m_dom = re.search(r'Industry:\s*([^|]+)', raw_notes, re.I)
+        dom_val = m_dom.group(1).strip() if m_dom else (c.get("industry") or "").strip()
+        if dom_val and dom_val != "N/A":
+            domain_counter[dom_val] = domain_counter.get(dom_val, 0) + 1
             
     filtered = []
     
@@ -947,6 +973,76 @@ def search_job_candidates(
         if selected_tags:
             # Check if candidate has at least one of the selected tags
             if not any(req_tag in c_tags_raw for req_tag in selected_tags):
+                continue
+
+        # Simple Custom Filters (Name, Phone, Email, Role, Location, Expected Salary, Group, Selection Status)
+        if filter_name and filter_name.strip():
+            if filter_name.strip().lower() not in (c.get("candidate_name") or "").lower():
+                continue
+        if filter_email and filter_email.strip():
+            if filter_email.strip().lower() not in (c.get("email") or "").lower():
+                continue
+        if filter_phone and filter_phone.strip():
+            p_digits = re.sub(r'\D', '', str(c.get("phone") or ""))
+            f_digits = re.sub(r'\D', '', filter_phone.strip())
+            if f_digits:
+                if f_digits not in p_digits:
+                    continue
+            else:
+                if filter_phone.strip().lower() not in str(c.get("phone") or "").lower():
+                    continue
+        if filter_role and filter_role.strip():
+            if filter_role.strip().lower() not in c_pos:
+                continue
+        if filter_location and filter_location.strip():
+            if filter_location.strip().lower() not in c_loc:
+                continue
+
+        # Expected Salary Custom Filter from Frappe Sidebar
+        if filter_expected_salary is not None and str(filter_expected_salary).strip():
+            sal_query = str(filter_expected_salary).strip().lower()
+            sal_digits = re.sub(r'\D', '', sal_query)
+            if sal_digits:
+                max_sal_val = float(sal_digits)
+                # If number <= 250000, consider it monthly salary; multiply by 12 for annual CTC comparison
+                if max_sal_val <= 250000:
+                    annual_cutoff = max_sal_val * 12
+                else:
+                    annual_cutoff = max_sal_val
+                if c_ctc > 0 and c_ctc > annual_cutoff:
+                    continue
+            else:
+                # Text match in raw notes
+                if sal_query not in (c.get("hr_notes") or "").lower():
+                    continue
+
+        # Domain / Industry Filter
+        dom_target = (filter_domain or domain or "").strip().lower()
+        if dom_target and dom_target != "all":
+            c_ind = (c.get("industry") or "").lower()
+            c_notes = (c.get("hr_notes") or "").lower()
+            c_tags = (c.get("profile_tags") or "").lower()
+            c_pos = (c.get("position_applied") or "").lower()
+            if dom_target not in c_ind and dom_target not in c_notes and dom_target not in c_tags and dom_target not in c_pos:
+                continue
+
+        # Selection Status Filter (All / Available / Selected)
+        if filter_selection_status and filter_selection_status.strip() and filter_selection_status.lower() != "all":
+            c_sel = (c.get("selection_status") or "Available").strip()
+            if filter_selection_status.strip().lower() != c_sel.lower():
+                continue
+
+        # Candidate Group / Bucket Filter
+        if filter_group and filter_group.strip() and filter_group.lower() != "all":
+            c_grp = (c.get("selected_group") or "").strip().lower()
+            if filter_group.strip().lower() not in c_grp:
+                continue
+
+        if filter_selected_location and filter_selected_location.strip():
+            if filter_selected_location.strip().lower() not in (c.get("selected_location") or "").lower():
+                continue
+        if filter_selected_by and filter_selected_by.strip():
+            if filter_selected_by.strip().lower() not in (c.get("selected_by") or "").lower():
                 continue
                 
         # Boolean Search Query Filter
@@ -1120,6 +1216,13 @@ def search_job_candidates(
             "match_tier": tier_label,
             "tier_icon": tier_icon,
             "hit_count": hit_count,
+            "selection_status": c.get("selection_status") or "Available",
+            "selected_by": c.get("selected_by") or "",
+            "selected_location": c.get("selected_location") or "",
+            "selected_role": c.get("selected_role") or "",
+            "selected_group": c.get("selected_group") or "",
+            "selected_at": str(c.get("selected_at") or ""),
+            "selected_by_location": c.get("selected_by_location") or "",
             "desk_url": f"/app/job-candidate/{c['name']}"
         })
         
@@ -1144,18 +1247,25 @@ def search_job_candidates(
     end_idx = start_idx + page_size
     paginated_results = filtered[start_idx:end_idx]
     
+    selected_count = sum(1 for c in all_candidates if (c.get("selection_status") or "").strip().lower() == "selected")
+    available_count = len(all_candidates) - selected_count
+
     return {
         "success": True,
         "candidates": paginated_results,
         "total_count": total_matches,
         "total_in_db": len(all_candidates),
+        "selected_count": selected_count,
+        "available_count": available_count,
         "total_pages": total_pages,
         "current_page": page,
         "page_size": page_size,
         "aggregations": {
             "tags": sorted([{"tag": k, "count": v} for k, v in tag_counter.items()], key=lambda x: x["count"], reverse=True)[:20],
             "locations": sorted([{"location": k, "count": v} for k, v in location_counter.items()], key=lambda x: x["count"], reverse=True),
-            "positions": sorted([{"position": k, "count": v} for k, v in position_counter.items()], key=lambda x: x["count"], reverse=True)
+            "positions": sorted([{"position": k, "count": v} for k, v in position_counter.items()], key=lambda x: x["count"], reverse=True),
+            "groups": sorted([{"group": k, "count": v} for k, v in group_counter.items()], key=lambda x: x["count"], reverse=True),
+            "domains": sorted([{"domain": k, "count": v} for k, v in domain_counter.items()], key=lambda x: x["count"], reverse=True)
         }
     }
 
@@ -1171,6 +1281,153 @@ def update_candidate_status(candidate_id: str, new_status: str) -> dict:
     frappe.db.set_value("Job Candidate", candidate_id, "status", new_status)
     frappe.db.commit()
     return {"success": True, "message": f"Candidate {candidate_id} status updated to {new_status}"}
+
+@frappe.whitelist(allow_guest=True)
+def claim_candidate_atomic(
+    candidate_id: str, 
+    recruiter_id: str, 
+    location: str, 
+    role: str = None, 
+    group_name: str = None,
+    recruiter_role: str = None,
+    recruiter_location: str = None
+) -> dict:
+    """
+    Strict atomic row-level lock using SELECT ... FOR UPDATE.
+    Guarantees that 3-4 recruiters selecting candidates simultaneously across different locations
+    can NEVER select or overwrite the same candidate.
+    Assigns candidate to a dedicated Group/Bucket, Role, Location, Recruiter ID, and Recruiter Office.
+    """
+    if not candidate_id or not recruiter_id or not location:
+        return {"success": False, "message": "Candidate ID, recruiter name/ID, and target location are required."}
+    
+    clean_recruiter_name = recruiter_id.strip()
+    clean_recruiter_role = (recruiter_role or "").strip()
+    clean_recruiter_loc = (recruiter_location or "").strip()
+    
+    # Format recruiter display: e.g. "Rahul Sharma (HR Director)" or "Rahul Sharma"
+    if clean_recruiter_role and clean_recruiter_role.lower() not in clean_recruiter_name.lower():
+        full_recruiter_display = f"{clean_recruiter_name} ({clean_recruiter_role})"
+    else:
+        full_recruiter_display = clean_recruiter_name
+
+    clean_target_location = location.strip()
+    clean_role = (role or "").strip()
+    clean_group = (group_name or f"{clean_target_location} - {clean_role or 'Hiring Team'}").strip()
+
+    try:
+        # Acquire row lock within transaction
+        row = frappe.db.sql("""
+            SELECT name, candidate_name, selection_status, selected_by, selected_location, selected_role, selected_group, selected_at, selected_by_location
+            FROM `tabJob Candidate`
+            WHERE name = %s
+            FOR UPDATE
+        """, (candidate_id,), as_dict=True)
+        
+        if not row:
+            return {"success": False, "message": f"Candidate {candidate_id} not found."}
+            
+        cand = row[0]
+        cur_status = (cand.get("selection_status") or "Available").strip()
+        cur_by = cand.get("selected_by") or ""
+        cur_loc = cand.get("selected_location") or ""
+        cur_role = cand.get("selected_role") or ""
+        cur_group = cand.get("selected_group") or ""
+        cur_by_loc = cand.get("selected_by_location") or ""
+        
+        # Concurrency Conflict Check: If already selected by someone else
+        if cur_status == "Selected" and (cur_by != full_recruiter_display or cur_loc != clean_target_location):
+            frappe.db.rollback()
+            return {
+                "success": False,
+                "conflict": True,
+                "already_selected": True,
+                "message": f"Candidate has already been locked by {cur_by} from {cur_by_loc or cur_loc} for {cur_loc} ({cur_role or 'Role'}) into group '{cur_group or 'Assigned'}'.",
+                "selected_by": cur_by,
+                "selected_location": cur_loc,
+                "selected_role": cur_role,
+                "selected_group": cur_group,
+                "selected_by_location": cur_by_loc,
+                "selected_at": str(cand.get("selected_at") or "")
+            }
+            
+        # Update with row lock held
+        now_dt = frappe.utils.now_datetime()
+        frappe.db.sql("""
+            UPDATE `tabJob Candidate`
+            SET selection_status = 'Selected',
+                selected_by = %s,
+                selected_location = %s,
+                selected_role = %s,
+                selected_group = %s,
+                selected_at = %s,
+                selected_by_location = %s
+            WHERE name = %s
+        """, (full_recruiter_display, clean_target_location, clean_role, clean_group, now_dt, clean_recruiter_loc, candidate_id))
+        
+        frappe.db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Successfully selected {cand.get('candidate_name')} for {clean_target_location} ({clean_role}) and added to group '{clean_group}'!",
+            "candidate_id": candidate_id,
+            "candidate_name": cand.get("candidate_name"),
+            "selected_by": full_recruiter_display,
+            "selected_location": clean_target_location,
+            "selected_role": clean_role,
+            "selected_group": clean_group,
+            "selected_by_location": clean_recruiter_loc,
+            "selected_at": str(now_dt),
+            "selection_status": "Selected"
+        }
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(f"Error in claim_candidate_atomic: {str(e)}")
+        return {"success": False, "message": f"Database error during selection: {str(e)}"}
+
+
+@frappe.whitelist(allow_guest=True)
+def release_candidate_atomic(candidate_id: str, recruiter_id: str = None) -> dict:
+    """
+    Release a previously selected candidate back to the 'Available' talent pool.
+    """
+    if not candidate_id:
+        return {"success": False, "message": "Candidate ID is required."}
+        
+    try:
+        row = frappe.db.sql("""
+            SELECT name, candidate_name, selection_status, selected_by, selected_location, selected_group
+            FROM `tabJob Candidate`
+            WHERE name = %s
+            FOR UPDATE
+        """, (candidate_id,), as_dict=True)
+        
+        if not row:
+            return {"success": False, "message": f"Candidate {candidate_id} not found."}
+            
+        cand = row[0]
+        frappe.db.sql("""
+            UPDATE `tabJob Candidate`
+            SET selection_status = 'Available',
+                selected_by = NULL,
+                selected_location = NULL,
+                selected_role = NULL,
+                selected_group = NULL,
+                selected_at = NULL
+            WHERE name = %s
+        """, (candidate_id,))
+        
+        frappe.db.commit()
+        return {
+            "success": True,
+            "message": f"Candidate {cand.get('candidate_name')} released back to Available talent pool.",
+            "candidate_id": candidate_id,
+            "selection_status": "Available"
+        }
+    except Exception as e:
+        frappe.db.rollback()
+        return {"success": False, "message": str(e)}
+
 
 
 

@@ -420,6 +420,204 @@
       cursor: pointer;
     }
 
+    /* Modern Floating UI Toast */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      max-width: 440px;
+      animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes toastSlideIn {
+      from { transform: translateY(-16px) scale(0.96); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .toast-success { border-left: 4px solid #10b981; }
+    .toast-error { border-left: 4px solid #ef4444; }
+    .toast-warning { border-left: 4px solid #f59e0b; }
+    .toast-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .toast-success .toast-icon { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .toast-error .toast-icon { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 0.86rem; font-weight: 700; color: #f8fafc; }
+    .toast-desc { font-size: 0.78rem; color: #94a3b8; margin-top: 2px; line-height: 1.35; }
+    .toast-close {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .toast-close:hover { color: #f1f5f9; }
+
+    /* Navigation Tabs: Talent Pool vs Selected Groups */
+    .portal-tabs-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      border-bottom: 2px solid var(--border-light);
+      padding-bottom: 6px;
+    }
+    .portal-tab-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border-base);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s ease;
+    }
+    .portal-tab-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+    .portal-tab-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Sleek Card Selection Banner */
+    .card-selection-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #2563eb;
+      border-radius: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .selection-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+    }
+    .lock-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #bfdbfe;
+    }
+    .selection-meta-text {
+      color: #475569;
+    }
+    .recruiter-office-pill {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.72rem;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-release-subtle {
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #f87171;
+      color: #dc2626;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease;
+    }
+    .btn-release-subtle:hover {
+      background: #fef2f2;
+    }
+    .comm-btn-select {
+      background: #059669;
+      color: #ffffff;
+      border-color: #047857;
+      font-weight: 700;
+    }
+    .comm-btn-select:hover {
+      background: #047857;
+    }
+    .mini-toggle-btn {
+      font-size: 0.72rem;
+      padding: 3px 9px;
+      border: 1px solid var(--border-base);
+      border-radius: 5px;
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .mini-toggle-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+    .mini-toggle-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    }
+    .profile-city-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: #0369a1;
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      border-radius: 4px;
+      padding: 2px 7px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .profile-city-badge:hover {
+      background: #bae6fd;
+      color: #0284c7;
+    }
+
+
     /* Candidate Cards Grid */
     .candidates-list {
       display: flex;
@@ -1194,7 +1392,7 @@
       <!-- Main Discovery 2-Column Grid -->
       <div class="discovery-grid">
         
-        <!-- Filters Sidebar -->
+        <!-- Simplified Clean Filters Sidebar -->
         <aside class="filter-panel">
           <div class="filter-header">
             <span class="filter-title">
@@ -1204,7 +1402,7 @@
             <button type="button" class="reset-btn" @click="resetAllFilters">Reset All</button>
           </div>
 
-          <!-- Status Filter -->
+          <!-- 1. Recruitment Status (Old Style Pills) -->
           <div class="filter-block">
             <label class="filter-label">Recruitment Status</label>
             <div class="pills-group">
@@ -1227,13 +1425,13 @@
             </div>
           </div>
 
-          <!-- Profile Tags Filter -->
+          <!-- 2. Profile Tags & Skills (Old Style Pills Cloud) -->
           <div class="filter-block">
             <label class="filter-label">
               <span>Profile Tags & Skills</span>
               <span v-if="selectedTags.length" style="font-size: 0.7rem; color: var(--text-primary); font-weight: 700;">({{ selectedTags.length }})</span>
             </label>
-            <div class="pills-group" style="max-height: 160px; overflow-y: auto;">
+            <div class="pills-group" style="max-height: 140px; overflow-y: auto;">
               <button 
                 v-for="item in availableTags" 
                 :key="item.tag" 
@@ -1247,7 +1445,7 @@
             </div>
           </div>
 
-          <!-- Experience Range -->
+          <!-- 3. Experience Range (Old Style Min/Max) -->
           <div class="filter-block">
             <label class="filter-label">Experience (Years)</label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
@@ -1256,7 +1454,7 @@
             </div>
           </div>
 
-          <!-- Notice Period -->
+          <!-- 4. Notice Period (Old Style Pills) -->
           <div class="filter-block">
             <label class="filter-label">Notice Period</label>
             <div class="pills-group">
@@ -1272,7 +1470,7 @@
             </div>
           </div>
 
-          <!-- City / Location -->
+          <!-- 5. City / Location (Old Style Select) -->
           <div class="filter-block">
             <label class="filter-label">Location / City</label>
             <select class="filter-select" v-model="selectedLocation" @change="triggerSearch(1)">
@@ -1283,7 +1481,39 @@
             </select>
           </div>
 
-          <!-- Max Expected CTC -->
+          <!-- 6. Custom Expected Salary Input (Required Feature) -->
+          <div class="filter-block">
+            <label class="filter-label">
+              <span>Expected Salary (Up to / Match)</span>
+              <span v-if="filterExpectedSalary" style="color:var(--text-primary); font-weight:700;">({{ filterExpectedSalary }})</span>
+            </label>
+            <input 
+              type="text" 
+              class="filter-input" 
+              v-model="filterExpectedSalary" 
+              placeholder="e.g. 25000 or ₹25,000/mo" 
+              @input="debouncedSearch">
+          </div>
+
+          <!-- 7. Domain / Industry Filter (Required Feature) -->
+          <div class="filter-block">
+            <label class="filter-label">Domain / Industry</label>
+            <select class="filter-select" v-model="filterDomain" @change="triggerSearch(1)">
+              <option value="">All Domains / Industries</option>
+              <option v-for="d in availableDomains" :key="d.domain" :value="d.domain">
+                {{ d.domain }} ({{ d.count }})
+              </option>
+            </select>
+            <input 
+              type="text" 
+              class="filter-input" 
+              style="margin-top:6px;" 
+              v-model="filterDomainText" 
+              placeholder="Or search domain (e.g. Retail, FMCG)..." 
+              @input="debouncedSearch">
+          </div>
+
+          <!-- 8. Max Expected CTC Annual (Old Style Select) -->
           <div class="filter-block">
             <label class="filter-label">Max Expected CTC (Annual)</label>
             <select class="filter-select" v-model="maxCtc" @change="triggerSearch(1)">
@@ -1296,19 +1526,97 @@
             </select>
           </div>
 
+          <!-- 9. Assigned Group Filter in Sidebar Box -->
+          <div class="filter-block" v-if="availableGroups && availableGroups.length">
+            <label class="filter-label">Assigned Group / Bucket</label>
+            <select class="filter-select" v-model="filterGroup" @change="triggerSearch(1)">
+              <option value="">All Groups</option>
+              <option v-for="g in availableGroups" :key="g.group" :value="g.group">
+                📁 {{ g.group }} ({{ g.count }})
+              </option>
+            </select>
+          </div>
+
         </aside>
 
         <!-- Right Side: Ranked Candidates List -->
         <section>
           
+          <!-- Simple, Intuitive Talent Pool & Group Filter Toolbar -->
+          <div class="portal-tabs-nav" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px; background:#f8fafc; padding:8px 12px; border-radius:10px; border:1px solid var(--border-base);">
+            
+            <!-- 3 Clear Pool Tabs -->
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button 
+                type="button" 
+                class="portal-tab-btn" 
+                :class="{ active: activeViewTab === 'all' && !filterGroup }" 
+                @click="setViewTab('all')">
+                <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+                <span>All Candidates ({{ totalPoolCount }})</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="portal-tab-btn" 
+                :class="{ active: activeViewTab === 'available' }" 
+                @click="setViewTab('available')">
+                <i data-lucide="user-check" style="width: 14px; height: 14px; color:#10b981;"></i>
+                <span>Available to Select ({{ availableCandidatesCount }})</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="portal-tab-btn" 
+                :class="{ active: activeViewTab === 'groups' && !filterGroup }" 
+                @click="setViewTab('groups')">
+                <i data-lucide="folder-check" style="width: 14px; height: 14px; color:#2563eb;"></i>
+                <span>In Groups / Drives ({{ selectedCandidatesCount }})</span>
+              </button>
+            </div>
+
+            <!-- Single Clean Group Filter Dropdown -->
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">
+                Filter by Group:
+              </span>
+              <div style="display:flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:3px 8px;">
+                <i data-lucide="folder" style="width:14px; height:14px; color:#2563eb; margin-right:4px;"></i>
+                <select 
+                  class="sort-select" 
+                  v-model="filterGroup" 
+                  @change="onFilterGroupSelect" 
+                  style="border:none; background:transparent; font-size:0.82rem; font-weight:700; cursor:pointer; color:#1e293b; padding:2px 4px;">
+                  <option value="">All Groups ({{ selectedCandidatesCount }})</option>
+                  <option v-for="g in availableGroups" :key="g.group" :value="g.group">
+                    📁 {{ g.group }} ({{ g.count }})
+                  </option>
+                </select>
+                <button 
+                  v-if="filterGroup" 
+                  type="button" 
+                  @click="clearGroupFilter" 
+                  style="border:none; background:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:0.95rem; margin-left:4px; padding:0 3px;" 
+                  title="Clear group filter">
+                  &times;
+                </button>
+              </div>
+            </div>
+
+          </div>
+
           <!-- Results Count & Sorting Header -->
           <div class="results-head">
             <div class="results-count-text">
               Showing <b>{{ candidates.length }}</b> of <b>{{ totalCount }}</b> matching candidates 
               <span v-if="searchQuery" style="color: var(--text-muted);">&bull; Query: <i>"{{ searchQuery }}"</i></span>
+              <span v-if="filterGroup" style="color: #2563eb; font-weight:700; margin-left:6px; background:#eff6ff; padding:2px 8px; border-radius:4px; border:1px solid #bfdbfe;">
+                📁 Group: <b>{{ filterGroup }}</b> 
+                <button type="button" @click="clearGroupFilter" style="border:none; background:none; color:#ef4444; font-weight:bold; cursor:pointer; margin-left:4px;">&times;</button>
+              </span>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <button 
                 type="button" 
                 class="btn-danger-outline" 
@@ -1321,13 +1629,14 @@
 
               <div class="sort-control">
                 <label for="sort_by">Rank By:</label>
-              <select id="sort_by" class="sort-select" v-model="sortBy" @change="triggerSearch(1)">
-                <option value="relevance">🌟 Best Match (Relevance Score DESC)</option>
-                <option value="experience_desc">Experience (High to Low)</option>
-                <option value="experience_asc">Experience (Low to High)</option>
-                <option value="ctc_asc">Expected CTC (Low to High)</option>
-                <option value="newest">Newest Candidates</option>
-              </select>
+                <select id="sort_by" class="sort-select" v-model="sortBy" @change="triggerSearch(1)">
+                  <option value="relevance">🌟 Best Match (Relevance Score DESC)</option>
+                  <option value="experience_desc">Experience (High to Low)</option>
+                  <option value="experience_asc">Experience (Low to High)</option>
+                  <option value="ctc_asc">Expected CTC (Budget Friendly)</option>
+                  <option value="newest">Recently Sourced (Newest First)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -1456,9 +1765,48 @@
               </div>
 
               <!-- Actions Bar -->
+              <!-- Card Selection Strip (Clean & Integrated) -->
+              <div v-if="cand.selection_status === 'Selected'" class="card-selection-strip">
+                <div class="selection-strip-left">
+                  <span class="lock-indicator">
+                    <i data-lucide="lock" style="width: 12px; height: 12px;"></i>
+                    <span>Locked to:</span>
+                    <b>📁 {{ cand.selected_group }}</b>
+                  </span>
+                  <span class="selection-meta-text">
+                    📍 Target: <b>{{ cand.selected_location }}</b> &bull; Role: <b>{{ cand.selected_role || 'General' }}</b>
+                    &bull; Added by: <b>{{ cand.selected_by }}</b>
+                    <span v-if="cand.selected_by_location" class="recruiter-office-pill">Office: {{ cand.selected_by_location }}</span>
+                    <span v-if="cand.selected_at" style="color:var(--text-muted);">&bull; {{ formatSelectedDate(cand.selected_at) }}</span>
+                  </span>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn-release-subtle" 
+                  :disabled="cand._isReleasing"
+                  @click.stop.prevent="releaseCandidate(cand)" 
+                  title="Release candidate back to the open pool">
+                  <i data-lucide="unlock" style="width: 11px; height: 11px;" v-if="!cand._isReleasing"></i>
+                  <i data-lucide="loader-2" style="width: 11px; height: 11px; animation: spin 1s linear infinite;" v-else></i>
+                  <span>{{ cand._isReleasing ? 'Releasing...' : 'Release' }}</span>
+                </button>
+              </div>
+
+              <!-- Actions Bar -->
               <div class="card-actions-bar">
                 <!-- Fast Follow-Up Buttons -->
                 <div class="fast-comm-group">
+                  <!-- + Select Candidate Button for Available Candidates -->
+                  <button 
+                    v-if="cand.selection_status !== 'Selected'"
+                    type="button" 
+                    class="comm-btn comm-btn-select" 
+                    @click="openSelectionModal(cand)" 
+                    title="Select candidate and assign to Location, Role & Group">
+                    <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i>
+                    <span>+ Select Candidate</span>
+                  </button>
+
                   <!-- WhatsApp Direct -->
                   <a 
                     :href="'https://wa.me/' + cand.clean_phone + '?text=' + encodeURIComponent('Hello ' + cand.candidate_name + ', contacting you from HR regarding ' + cand.position_applied)" 
@@ -1908,6 +2256,258 @@ saveCandidateNotes">
       </div>
     </div>
 
+    <!-- ========================================================= -->
+    <!-- MULTI-USER CANDIDATE SELECTION & GROUP ASSIGNMENT MODAL   -->
+    <!-- ========================================================= -->
+    <div class="modal-backdrop" v-if="showSelectionModal" @click.self="showSelectionModal = false">
+      <div class="profile-modal" style="max-width: 520px; padding: 24px;" v-if="modalCandidate">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-light); padding-bottom:12px;">
+          <h3 style="font-size:1.15rem; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+            <i data-lucide="user-plus" style="width:20px; height:20px; color:#059669;"></i>
+            <span>Select & Assign Candidate</span>
+          </h3>
+          <button class="btn-close-modal" @click="showSelectionModal = false">&times;</button>
+        </div>
+
+        <!-- Candidate Quick Header -->
+        <div style="background:var(--bg-subtle); padding:10px 14px; border-radius:8px; margin-bottom:16px; border:1px solid var(--border-base);">
+          <div style="font-weight:800; font-size:1rem; color:var(--text-primary);">{{ modalCandidate.candidate_name }}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+            {{ modalCandidate.position_applied }} &bull; {{ modalCandidate.current_location }} &bull; Exp: {{ modalCandidate.experience_years }} Yrs
+          </div>
+        </div>
+
+        <!-- Selection Form -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          
+          <!-- 1. Dedicated Group / Drive Bucket -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <label style="font-size:0.74rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">
+                1. Add to Group / Bucket <span style="color:#ef4444;">*</span>
+              </label>
+              <!-- Switcher between Existing & Custom -->
+              <div style="display:flex; gap:4px;">
+                <button 
+                  type="button" 
+                  class="mini-toggle-btn" 
+                  :class="{ active: groupInputMode === 'existing' }" 
+                  @click="setGroupMode('existing')"
+                  title="Select from existing active groups">
+                  📁 Existing ({{ availableGroups.length }})
+                </button>
+                <button 
+                  type="button" 
+                  class="mini-toggle-btn" 
+                  :class="{ active: groupInputMode === 'custom' }" 
+                  @click="setGroupMode('custom')"
+                  title="Create custom new group name">
+                  ➕ + Create New Group
+                </button>
+              </div>
+            </div>
+
+            <!-- Existing Group Selector -->
+            <div v-if="groupInputMode === 'existing'">
+              <div v-if="availableGroups && availableGroups.length > 0">
+                <select 
+                  class="filter-select" 
+                  v-model="selectForm.group_name" 
+                  style="width:100%; font-size:0.88rem; padding:8px 10px; font-weight:600; color:#1e3a8a; background:#f0f7ff; border:1px solid #93c5fd;">
+                  <option value="" disabled>-- Select an Existing Group --</option>
+                  <option v-for="g in availableGroups" :key="g.group" :value="g.group">
+                    📁 {{ g.group }} ({{ g.count }} candidates)
+                  </option>
+                </select>
+              </div>
+              <div v-else style="font-size:0.8rem; color:var(--text-muted); background:var(--bg-subtle); padding:8px; border-radius:6px; border:1px dashed var(--border-base);">
+                No existing groups yet. Click <b>+ Create New Group</b> above to create one.
+              </div>
+            </div>
+
+            <!-- Custom Group Name Input -->
+            <div v-else>
+              <input 
+                type="text" 
+                class="filter-input" 
+                v-model="selectForm.group_name" 
+                placeholder="Type custom group name, e.g. Patna - Sales Q4 Drive..." 
+                style="width:100%; font-size:0.88rem; padding:8px 10px; font-weight:600; color:#1e3a8a; background:#f0f7ff; border:1px solid #93c5fd;">
+            </div>
+
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:3px;">
+              Candidate will be locked into this group so other recruiters cannot take or overwrite them.
+            </div>
+          </div>
+
+          <!-- 2. Target Branch & Role -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <!-- Target Branch / City -->
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="font-size:0.74rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">
+                  2. Target Branch / City <span style="color:#ef4444;">*</span>
+                </label>
+                <!-- Quick Profile City Badge -->
+                <button 
+                  v-if="modalCandidate.current_location"
+                  type="button" 
+                  class="profile-city-badge" 
+                  @click="useProfileCity" 
+                  title="Click to use city from candidate profile">
+                  📍 Profile: <b>{{ modalCandidate.current_location }}</b>
+                </button>
+              </div>
+              <input 
+                type="text" 
+                class="filter-input" 
+                v-model="selectForm.location" 
+                list="location-suggestions"
+                placeholder="Type custom city or pick..." 
+                style="width:100%; font-size:0.86rem; padding:8px 10px;">
+              <datalist id="location-suggestions">
+                <option v-if="modalCandidate.current_location" :value="modalCandidate.current_location">From Candidate Profile</option>
+                <option v-for="loc in availableLocations" :key="loc.location" :value="loc.location"></option>
+                <option value="Patna"></option>
+                <option value="Surat"></option>
+                <option value="Raipur"></option>
+                <option value="Delhi"></option>
+                <option value="Bettiah"></option>
+                <option value="Ahmedabad"></option>
+                <option value="Mumbai"></option>
+              </datalist>
+            </div>
+
+            <!-- 3. Selected For Role (Fixed from Profile) -->
+            <div>
+              <label style="font-size:0.74rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px; display:block;">
+                3. Selected For Role <span style="color:#059669; font-size:0.68rem; font-weight:700;">(FIXED FROM PROFILE)</span>
+              </label>
+              <div style="display:flex; align-items:center; gap:6px; background:var(--bg-subtle); border:1px solid var(--border-base); border-radius:6px; padding:7px 10px; height:38px;">
+                <i data-lucide="briefcase" style="width:14px; height:14px; color:#2563eb; flex-shrink:0;"></i>
+                <span style="font-size:0.86rem; font-weight:700; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  {{ selectForm.role || modalCandidate.position_applied || 'Sales Executive' }}
+                </span>
+                <span style="font-size:0.68rem; color:#059669; margin-left:auto; font-weight:700; background:#dcfce7; padding:1px 5px; border-radius:4px; flex-shrink:0;">
+                  ✓ Fixed
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Who is Adding (Recruiter Details & Location) -->
+          <div style="background:var(--bg-subtle); padding:12px; border-radius:8px; border:1px solid var(--border-light);">
+            <div style="font-size:0.76rem; font-weight:800; color:var(--text-primary); text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="user-check" style="width:14px; height:14px; color:#2563eb;"></i>
+              <span>4. Recruiter Adding Candidate (Saved in Group)</span>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+              <div>
+                <label style="font-size:0.72rem; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:3px;">
+                  Pre-built Designation <span style="color:#ef4444;">*</span>
+                </label>
+                <select class="filter-select" v-model="selectForm.recruiter_role" style="width:100%; font-size:0.84rem; padding:7px 10px;">
+                  <option value="HR Director">HR Director</option>
+                  <option value="Manager Head">Manager Head</option>
+                  <option value="Branch HR Lead">Branch HR Lead</option>
+                  <option value="Talent Acquisition Lead">Talent Acquisition Lead</option>
+                  <option value="Senior Recruiter">Senior Recruiter</option>
+                  <option value="HR Executive">HR Executive</option>
+                  <option value="Operations Head">Operations Head</option>
+                  <option value="General Manager">General Manager</option>
+                  <option value="Recruiter">Recruiter</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.72rem; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:3px;">
+                  Recruiter Name / ID <span style="color:#ef4444;">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  class="filter-input" 
+                  v-model="selectForm.recruiter_name" 
+                  placeholder="e.g. Rahul Sharma, Rudra..." 
+                  style="width:100%; font-size:0.84rem; padding:7px 10px;">
+              </div>
+            </div>
+
+            <!-- Recruiter Location: Prebuilt Dropdown + Custom Add Option -->
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                <label style="font-size:0.72rem; font-weight:700; color:var(--text-secondary);">
+                  Which Location Are You From? (Office Location) <span style="color:#ef4444;">*</span>
+                </label>
+                <button 
+                  type="button" 
+                  @click="customOfficeMode = !customOfficeMode" 
+                  style="font-size:0.7rem; color:#2563eb; background:none; border:none; cursor:pointer; font-weight:600; text-decoration:underline;">
+                  {{ customOfficeMode ? '◀ Choose Pre-built Office' : '➕ + Type Custom Office' }}
+                </button>
+              </div>
+
+              <!-- Prebuilt Dropdown with Custom option -->
+              <div v-if="!customOfficeMode">
+                <select 
+                  class="filter-select" 
+                  v-model="selectForm.recruiter_location" 
+                  @change="onOfficeLocationChange"
+                  style="width:100%; font-size:0.84rem; padding:7px 10px;">
+                  <option value="Corporate HQ (Patna)">Corporate HQ (Patna)</option>
+                  <option value="Surat Regional Office">Surat Regional Office</option>
+                  <option value="Raipur Regional Branch">Raipur Regional Branch</option>
+                  <option value="Delhi NCR Office">Delhi NCR Office</option>
+                  <option value="Ahmedabad Branch">Ahmedabad Branch</option>
+                  <option value="Mumbai Office">Mumbai Office</option>
+                  <option value="Bettiah Branch">Bettiah Branch</option>
+                  <option value="__CUSTOM__">➕ Other / Custom Office Location...</option>
+                </select>
+              </div>
+
+              <!-- Custom Text Input -->
+              <div v-else>
+                <input 
+                  type="text" 
+                  class="filter-input" 
+                  v-model="selectForm.recruiter_location" 
+                  placeholder="e.g. Pune Regional Branch, Kolkata Hub, Indore Branch..." 
+                  style="width:100%; font-size:0.84rem; padding:7px 10px;">
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:22px; border-top:1px solid var(--border-light); padding-top:14px;">
+          <button type="button" class="nav-btn" @click="showSelectionModal = false">Cancel</button>
+          <button 
+            type="button" 
+            class="comm-btn comm-btn-primary" 
+            style="padding:9px 20px; font-size:0.86rem; background:#059669; border-color:#047857;" 
+            :disabled="isClaiming"
+            @click="submitCandidateClaim">
+            <i data-lucide="check-circle" style="width:15px; height:15px;"></i>
+            <span>{{ isClaiming ? 'Locking Candidate...' : 'Confirm & Lock to Group' }}</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- FLOATING UI TOAST NOTIFICATION CONTAINER                   -->
+    <!-- ========================================================= -->
+    <div class="toast-container" v-if="toast.show" :class="'toast-' + toast.type">
+      <div class="toast-icon">
+        <i :data-lucide="toast.icon" style="width:16px; height:16px;"></i>
+      </div>
+      <div class="toast-body">
+        <div class="toast-title">{{ toast.title }}</div>
+        <div class="toast-desc">{{ toast.message }}</div>
+      </div>
+      <button class="toast-close" @click="toast.show = false">&times;</button>
+    </div>
     </main>
   </div>
 {% endraw %}
@@ -1926,22 +2526,102 @@ saveCandidateNotes">
         const selectedLocation = ref('');
         const maxCtc = ref('');
         const sortBy = ref('relevance');
-        
+
+        // Custom Filters
+        const filterExpectedSalary = ref('');
+        const filterDomain = ref('');
+        const filterDomainText = ref('');
+        const filterGroup = ref('');
+        const activeViewTab = ref('all');
+        const totalPoolCount = ref(0);
+        const selectedCandidatesCount = ref(0);
+        const availableCandidatesCount = ref(0);
+
+        // Toast Notification State (Replaces computer style alert)
+        const toast = ref({
+          show: false,
+          title: '',
+          message: '',
+          type: 'success',
+          icon: 'check-circle'
+        });
+        let toastTimeout = null;
+        const showToast = (title, message, type = 'success') => {
+          clearTimeout(toastTimeout);
+          toast.value = {
+            show: true,
+            title: title,
+            message: message,
+            type: type,
+            icon: type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : 'alert-triangle')
+          };
+          nextTick(() => lucide.createIcons());
+          toastTimeout = setTimeout(() => {
+            toast.value.show = false;
+          }, 4000);
+        };
+
+        // Selection Modal State with Pre-built Recruiter Roles & Locations
+                const showSelectionModal = ref(false);
+        const groupInputMode = ref('existing'); // 'existing' | 'custom'
+        const customOfficeMode = ref(false);
+
+        const setGroupMode = (mode) => {
+          groupInputMode.value = mode;
+          if (mode === 'custom') {
+            if (!selectForm.value.group_name || availableGroups.value.some(g => g.group === selectForm.value.group_name)) {
+              const loc = selectForm.value.location || 'Patna';
+              const role = selectForm.value.role || 'Drive';
+              selectForm.value.group_name = `${loc} - ${role} Drive`;
+            }
+          } else {
+            if (availableGroups.value && availableGroups.value.length > 0) {
+              selectForm.value.group_name = availableGroups.value[0].group;
+            }
+          }
+        };
+
+        const useProfileCity = () => {
+          if (modalCandidate.value && modalCandidate.value.current_location) {
+            selectForm.value.location = modalCandidate.value.current_location;
+          }
+        };
+
+        const onOfficeLocationChange = () => {
+          if (selectForm.value.recruiter_location === '__CUSTOM__') {
+            customOfficeMode.value = true;
+            selectForm.value.recruiter_location = '';
+          }
+        };
+        const modalCandidate = ref(null);
+        const isClaiming = ref(false);
+        const selectForm = ref({
+          recruiter_name: localStorage.getItem('candidate_recruiter_name') || 'Rahul Sharma',
+          recruiter_role: localStorage.getItem('candidate_recruiter_role') || 'HR Director',
+          recruiter_location: localStorage.getItem('candidate_recruiter_location') || 'Corporate HQ (Patna)',
+          location: 'Patna',
+          role: 'Sales Executive',
+          group_name: 'Patna - Hiring Drive'
+        });
+
         const currentPage = ref(1);
         const pageSize = ref(6);
         const totalCount = ref(0);
         const totalPages = ref(1);
-        
+
         const candidates = ref([]);
         const availableTags = ref([]);
+        const availableLocations = ref([]);
+        const availablePositions = ref([]);
+        const availableGroups = ref([]);
+        const availableDomains = ref([]);
+
         const selectedCandidate = ref(null);
         const showProfileModal = ref(false);
         const modalTab = ref('dossier');
         const editNotes = ref('');
         const isSavingNotes = ref(false);
         const notesMsg = ref('');
-        const availableLocations = ref([]);
-        const availablePositions = ref([]);
         const isLoading = ref(false);
 
         // Edit Profile State
@@ -1963,6 +2643,30 @@ saveCandidateNotes">
             if (selectedNotice.value.length) params.append('notice_periods', selectedNotice.value.join(','));
             if (selectedLocation.value) params.append('location', selectedLocation.value);
             if (maxCtc.value) params.append('max_ctc', maxCtc.value);
+
+            // Custom Salary filter
+            if (filterExpectedSalary.value.trim()) {
+              params.append('filter_expected_salary', filterExpectedSalary.value.trim());
+            }
+
+            // Domain filter (Dropdown or manual search)
+            const domQ = filterDomainText.value.trim() || filterDomain.value;
+            if (domQ && domQ !== 'all') {
+              params.append('domain', domQ);
+            }
+
+            // Tab View Filter
+            if (activeViewTab.value === 'available') {
+              params.append('filter_selection_status', 'Available');
+            } else if (activeViewTab.value === 'groups') {
+              params.append('filter_selection_status', 'Selected');
+            }
+
+            // Group Filter (Upper side and sidebar)
+            if (filterGroup.value && filterGroup.value !== 'All') {
+              params.append('filter_group', filterGroup.value);
+            }
+
             params.append('sort_by', sortBy.value);
             params.append('page', currentPage.value);
             params.append('page_size', pageSize.value);
@@ -1980,6 +2684,14 @@ saveCandidateNotes">
               availableTags.value = data.aggregations.tags || [];
               availableLocations.value = data.aggregations.locations || [];
               availablePositions.value = data.aggregations.positions || [];
+              availableGroups.value = data.aggregations.groups || [];
+              availableDomains.value = data.aggregations.domains || [];
+            }
+            if (data.aggregations?.groups) {
+              selectedCandidatesCount.value = data.aggregations.groups.reduce((acc, g) => acc + (g.count || 0), 0);
+            }
+            if (data.aggregations?.groups) {
+              selectedCandidatesCount.value = data.aggregations.groups.reduce((acc, g) => acc + (g.count || 0), 0);
             }
           } catch(err) {
             console.error('Error searching candidates:', err);
@@ -2033,6 +2745,210 @@ saveCandidateNotes">
           triggerSearch(1);
         };
 
+        let debounceTimer = null;
+        const debouncedSearch = () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            triggerSearch(1);
+          }, 350);
+        };
+
+        const setViewTab = (tab) => {
+          activeViewTab.value = tab;
+          if (tab !== 'groups') {
+            filterGroup.value = '';
+          }
+          triggerSearch(1);
+        };
+
+        const onFilterGroupSelect = () => {
+          if (filterGroup.value) {
+            activeViewTab.value = 'groups';
+          }
+          triggerSearch(1);
+        };
+
+        const clearGroupFilter = () => {
+          filterGroup.value = '';
+          triggerSearch(1);
+        };
+
+        const formatSelectedDate = (dt) => {
+          if (!dt) return '';
+          try {
+            const d = new Date(dt);
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          } catch(e) { return dt; }
+        };
+
+        const openSelectionModal = (cand) => {
+          modalCandidate.value = cand;
+          // 3. Role is fixed because candidate already fixed in which role they are trying to go
+          selectForm.value.role = cand.position_applied || 'Sales Executive';
+          
+          // 2. Target Branch / City: defaults to candidate profile city if available
+          const candCity = cand.current_location ? cand.current_location.trim() : 'Patna';
+          selectForm.value.location = candCity;
+          
+          // 1. Group Selection: if existing groups exist, show existing mode or custom
+          if (availableGroups.value && availableGroups.value.length > 0) {
+            groupInputMode.value = 'existing';
+            const matchGroup = availableGroups.value.find(g => g.group.toLowerCase().includes(candCity.toLowerCase()));
+            selectForm.value.group_name = matchGroup ? matchGroup.group : availableGroups.value[0].group;
+          } else {
+            groupInputMode.value = 'custom';
+            selectForm.value.group_name = `${candCity} - ${selectForm.value.role} Drive`;
+          }
+
+          // 4. Recruiter Office Location
+          const stdOffices = [
+            'Corporate HQ (Patna)',
+            'Surat Regional Office',
+            'Raipur Regional Branch',
+            'Delhi NCR Office',
+            'Ahmedabad Branch',
+            'Mumbai Office',
+            'Bettiah Branch'
+          ];
+          if (selectForm.value.recruiter_location && !stdOffices.includes(selectForm.value.recruiter_location)) {
+            customOfficeMode.value = true;
+          } else {
+            customOfficeMode.value = false;
+          }
+
+          showSelectionModal.value = true;
+          nextTick(() => lucide.createIcons());
+        };
+
+        const submitCandidateClaim = async () => {
+          if (!modalCandidate.value) return;
+          const f = selectForm.value;
+          if (!f.recruiter_name.trim() || !f.location.trim() || !f.role.trim() || !f.group_name.trim()) {
+            showToast('Missing Details', 'Please complete recruiter name, hiring location, role, and group.', 'warning');
+            return;
+          }
+
+          localStorage.setItem('candidate_recruiter_name', f.recruiter_name.trim());
+          localStorage.setItem('candidate_recruiter_role', f.recruiter_role);
+          localStorage.setItem('candidate_recruiter_location', f.recruiter_location.trim());
+
+          isClaiming.value = true;
+          try {
+            const params = new URLSearchParams();
+            params.append('candidate_id', modalCandidate.value.name);
+            params.append('recruiter_id', f.recruiter_name.trim());
+            params.append('recruiter_role', f.recruiter_role);
+            params.append('recruiter_location', f.recruiter_location.trim());
+            params.append('location', f.location.trim());
+            params.append('role', f.role.trim());
+            params.append('group_name', f.group_name.trim());
+
+            const res = await fetch(`/api/method/face_attendance.api.claim_candidate_atomic?${params.toString()}`);
+            const json = await res.json();
+            const msg = json.message || {};
+
+            if (msg.success) {
+              modalCandidate.value.selection_status = 'Selected';
+              modalCandidate.value.selected_by = msg.selected_by;
+              modalCandidate.value.selected_location = msg.selected_location;
+              modalCandidate.value.selected_role = msg.selected_role;
+              modalCandidate.value.selected_group = msg.selected_group;
+              modalCandidate.value.selected_by_location = msg.selected_by_location;
+              modalCandidate.value.selected_at = msg.selected_at;
+              showSelectionModal.value = false;
+              showToast('Candidate Locked', `✓ Successfully assigned ${modalCandidate.value.candidate_name} to "${msg.selected_group}"!`, 'success');
+              fetchCandidates();
+            } else if (msg.conflict || msg.already_selected) {
+              modalCandidate.value.selection_status = 'Selected';
+              modalCandidate.value.selected_by = msg.selected_by || 'Other Recruiter';
+              modalCandidate.value.selected_location = msg.selected_location || 'Other Branch';
+              modalCandidate.value.selected_role = msg.selected_role || '';
+              modalCandidate.value.selected_group = msg.selected_group || '';
+              modalCandidate.value.selected_by_location = msg.selected_by_location || '';
+              showSelectionModal.value = false;
+              showToast('Concurrency Conflict', msg.message, 'error');
+            } else {
+              showToast('Selection Error', msg.message || 'Error selecting candidate.', 'error');
+            }
+          } catch(err) {
+            showToast('Network Error', err.message, 'error');
+          } finally {
+            isClaiming.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const releaseCandidate = async (cand) => {
+          if (!cand || !cand.name) return;
+          cand._isReleasing = true;
+          try {
+            const res = await fetch(`/api/method/face_attendance.api.release_candidate_atomic?candidate_id=${encodeURIComponent(cand.name)}`);
+            const json = await res.json();
+            const msg = json.message || {};
+
+            if (msg.success) {
+              cand.selection_status = 'Available';
+              cand.selected_by = '';
+              cand.selected_location = '';
+              cand.selected_role = '';
+              cand.selected_group = '';
+              cand.selected_by_location = '';
+              cand.selected_at = '';
+              cand._isReleasing = false;
+              
+              showToast('Candidate Released', `✓ ${cand.candidate_name || 'Candidate'} has been released back to Available pool.`, 'success');
+              
+              if (selectedCandidatesCount.value > 0) selectedCandidatesCount.value--;
+              availableCandidatesCount.value++;
+              
+              if (activeViewTab.value === 'groups' || filterGroup.value) {
+                candidates.value = candidates.value.filter(c => c.name !== cand.name);
+                totalCount.value = Math.max(0, totalCount.value - 1);
+              }
+              fetchCandidates();
+            } else {
+              cand._isReleasing = false;
+              showToast('Release Failed', msg.message || 'Error releasing candidate.', 'error');
+            }
+          } catch(err) {
+            cand._isReleasing = false;
+            showToast('Error', err.message, 'error');
+          } finally {
+            cand._isReleasing = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const silentPollCandidates = async () => {
+          if (isLoading.value) return;
+          try {
+            const params = new URLSearchParams();
+            if (searchQuery.value.trim()) params.append('query', searchQuery.value.trim());
+            if (activeViewTab.value === 'groups') params.append('filter_selection_status', 'Selected');
+            if (filterGroup.value) params.append('filter_group', filterGroup.value);
+            params.append('page', currentPage.value);
+            params.append('page_size', pageSize.value);
+
+            const res = await fetch(`/api/method/face_attendance.api.search_job_candidates?${params.toString()}`);
+            const json = await res.json();
+            const freshList = json.message?.candidates || [];
+
+            freshList.forEach(fc => {
+              const match = candidates.value.find(c => c.name === fc.name);
+              if (match) {
+                match.selection_status = fc.selection_status;
+                match.selected_by = fc.selected_by;
+                match.selected_location = fc.selected_location;
+                match.selected_role = fc.selected_role;
+                match.selected_group = fc.selected_group;
+                match.selected_by_location = fc.selected_by_location;
+                match.selected_at = fc.selected_at;
+              }
+            });
+            nextTick(() => lucide.createIcons());
+          } catch(e) {}
+        };
+
         const resetAllFilters = () => {
           searchQuery.value = '';
           selectedStatus.value = '';
@@ -2042,6 +2958,10 @@ saveCandidateNotes">
           selectedNotice.value = [];
           selectedLocation.value = '';
           maxCtc.value = '';
+          filterExpectedSalary.value = '';
+          filterDomain.value = '';
+          filterDomainText.value = '';
+          filterGroup.value = '';
           sortBy.value = 'relevance';
           triggerSearch(1);
         };
@@ -2111,10 +3031,11 @@ saveCandidateNotes">
             if (json.message && json.message.success) {
               selectedCandidate.value.hr_notes = editNotes.value;
               notesMsg.value = '✓ Successfully saved to Frappe database!';
+              showToast('Notes Saved', 'Candidate HR notes updated successfully', 'success');
               setTimeout(() => { notesMsg.value = ''; }, 3000);
             }
           } catch(e) {
-            console.error('Save notes error:', e);
+            showToast('Save Error', e.message, 'error');
           } finally {
             isSavingNotes.value = false;
           }
@@ -2126,10 +3047,11 @@ saveCandidateNotes">
             const json = await res.json();
             if (json.message && json.message.success) {
               candidate.status = newStatus;
+              showToast('Status Updated', `${candidate.candidate_name} status set to ${newStatus}`, 'success');
               nextTick(() => lucide.createIcons());
             }
           } catch(err) {
-            console.error('Status update error:', err);
+            showToast('Update Error', err.message, 'error');
           }
         };
 
@@ -2174,6 +3096,7 @@ saveCandidateNotes">
             if (json.message && json.message.success) {
               editSuccess.value = true;
               editMsg.value = '✓ Successfully updated candidate profile in Frappe!';
+              showToast('Profile Saved', 'Candidate profile updated in Frappe', 'success');
               fetchCandidates();
               if (selectedCandidate.value && selectedCandidate.value.name === editForm.value.candidate_id) {
                 Object.assign(selectedCandidate.value, editForm.value);
@@ -2184,10 +3107,12 @@ saveCandidateNotes">
             } else {
               editSuccess.value = false;
               editMsg.value = json.message?.message || 'Error saving candidate profile.';
+              showToast('Error', editMsg.value, 'error');
             }
           } catch(err) {
             editSuccess.value = false;
             editMsg.value = 'Failed to connect to Frappe server: ' + err.message;
+            showToast('Error', editMsg.value, 'error');
           } finally {
             isSavingCandidate.value = false;
           }
@@ -2196,10 +3121,6 @@ saveCandidateNotes">
         const deleteCandidate = async (cand) => {
           if (!cand || !cand.name) return;
           const candName = cand.candidate_name || cand.name;
-          if (!confirm(`Are you sure you want to permanently delete candidate "${candName}" from Frappe?`)) {
-            return;
-          }
-
           try {
             const res = await fetch('/api/method/face_attendance.api.delete_job_candidate', {
               method: 'POST',
@@ -2211,22 +3132,21 @@ saveCandidateNotes">
               if (showProfileModal.value && selectedCandidate.value?.name === cand.name) {
                 showProfileModal.value = false;
               }
+              showToast('Candidate Deleted', `${candName} removed from Frappe`, 'info');
               fetchCandidates();
             } else {
-              alert(json.message?.message || 'Failed to delete candidate.');
+              showToast('Delete Failed', json.message?.message || 'Failed to delete candidate.', 'error');
             }
           } catch(err) {
-            alert('Delete Error: ' + err.message);
+            showToast('Delete Error', err.message, 'error');
           }
         };
 
         const confirmDeleteAll = async () => {
           if (totalCount.value === 0) {
-            alert('No candidates found to delete.');
+            showToast('Notice', 'No candidates found to delete.', 'info');
             return;
           }
-          const prompt = confirm(`⚠️ Are you sure you want to delete ALL ${totalCount.value} candidates from Frappe?\n\nThis will permanently remove all candidate profiles from the database!`);
-          if (!prompt) return;
 
           try {
             isLoading.value = true;
@@ -2237,14 +3157,14 @@ saveCandidateNotes">
             });
             const json = await res.json();
             if (json.message && json.message.success) {
-              alert(json.message.message || 'All candidate profiles deleted successfully!');
+              showToast('Deleted All', json.message.message || 'All candidate profiles deleted.', 'info');
               if (showProfileModal.value) showProfileModal.value = false;
               fetchCandidates();
             } else {
-              alert(json.message?.message || 'Failed to delete all candidates.');
+              showToast('Delete Failed', json.message?.message || 'Failed to delete candidates.', 'error');
             }
           } catch(err) {
-            alert('Delete All Error: ' + err.message);
+            showToast('Delete Error', err.message, 'error');
           } finally {
             isLoading.value = false;
           }
@@ -2255,17 +3175,25 @@ saveCandidateNotes">
           if (urlParams.get('query') || urlParams.get('q')) {
             searchQuery.value = urlParams.get('query') || urlParams.get('q');
           }
-          if (urlParams.get('tags') || urlParams.get('tag')) {
-            const rawTags = (urlParams.get('tags') || urlParams.get('tag')).split(',');
-            selectedTags.value = rawTags.map(t => t.toLowerCase().trim()).filter(Boolean);
-          }
           if (urlParams.get('status')) selectedStatus.value = urlParams.get('status');
           if (urlParams.get('location')) selectedLocation.value = urlParams.get('location');
+          if (urlParams.get('group')) filterGroup.value = urlParams.get('group');
           fetchCandidates();
           nextTick(() => lucide.createIcons());
+
+          // 6-second heartbeat polling to sync candidate selection across simultaneous recruiters
+          setInterval(silentPollCandidates, 6000);
         });
 
         return {
+          candidates,
+          isLoading,
+          currentPage,
+          pageSize,
+          totalCount,
+          totalPages,
+          sortBy,
+          fetchCandidates,
           searchQuery,
           selectedStatus,
           selectedTags,
@@ -2274,16 +3202,38 @@ saveCandidateNotes">
           selectedNotice,
           selectedLocation,
           maxCtc,
-          sortBy,
-          currentPage,
-          pageSize,
-          totalCount,
-          totalPages,
-          candidates,
+          filterExpectedSalary,
+          filterDomain,
+          filterDomainText,
+          filterGroup,
+          activeViewTab,
+          totalPoolCount,
+          selectedCandidatesCount,
+          availableCandidatesCount,
+          onFilterGroupSelect,
+          clearGroupFilter,
+          toast,
+          showToast,
+          showSelectionModal,
+          groupInputMode,
+          customOfficeMode,
+          setGroupMode,
+          useProfileCity,
+          onOfficeLocationChange,
+          modalCandidate,
+          isClaiming,
+          selectForm,
           availableTags,
           availableLocations,
           availablePositions,
-          isLoading,
+          availableGroups,
+          availableDomains,
+          debouncedSearch,
+          setViewTab,
+          formatSelectedDate,
+          openSelectionModal,
+          submitCandidateClaim,
+          releaseCandidate,
           triggerSearch,
           clearSearch,
           insertOperator,

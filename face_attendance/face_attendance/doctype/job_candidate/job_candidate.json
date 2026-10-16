@@ -152,7 +152,7 @@
   {
    "fieldname": "next_follow_up_date",
    "fieldtype": "Date",
-   "in_standard_filter": 1,
+   "in_standard_filter": 0,
    "label": "Next Follow-Up Date"
   },
   {
@@ -168,9 +168,48 @@
    "fieldname": "profile_tags",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "in_standard_filter": 1,
+   "in_standard_filter": 0,
    "label": "Profile Tags / Skills",
    "description": "Comma-separated tags e.g. Python, Frappe, Vue, Full Stack, Immediate"
+  },
+  {
+   "fieldname": "selection_status",
+   "fieldtype": "Select",
+   "label": "Selection Status",
+   "options": "Available\nSelected",
+   "default": "Available",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "selected_by",
+   "fieldtype": "Data",
+   "label": "Selected By Recruiter"
+  },
+  {
+   "fieldname": "selected_location",
+   "fieldtype": "Data",
+   "label": "Selected Branch Location"
+  },
+  {
+   "fieldname": "selected_role",
+   "fieldtype": "Data",
+   "label": "Assigned Selection Role"
+  },
+  {
+   "fieldname": "selected_group",
+   "fieldtype": "Data",
+   "label": "Candidate Group / Bucket",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "selected_at",
+   "fieldtype": "Datetime",
+   "label": "Selected At"
+  },
+  {
+   "fieldname": "selected_by_location",
+   "fieldtype": "Data",
+   "label": "Recruiter Office Location"
   }
  ],
  "links": [],
