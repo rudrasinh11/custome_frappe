@@ -210,6 +210,18 @@
    "fieldname": "selected_by_location",
    "fieldtype": "Data",
    "label": "Recruiter Office Location"
+  },
+  {
+   "fieldname": "job_locks",
+   "fieldtype": "Long Text",
+   "label": "Job Locks JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "selected_job_id",
+   "fieldtype": "Data",
+   "label": "Selected Job ID",
+   "read_only": 1
   }
  ],
  "links": [],
