@@ -136,13 +136,13 @@
 
     .nav-inner {
       max-width: 1560px;
-      width: 100%;
+      width: calc(100% - 32px);
       height: 100%;
       margin: 0 auto;
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
     }
 
     /* Single-Line Creative Brand */
@@ -1815,16 +1815,121 @@
     }
 
   
+        /* Scope Scroll Pills (Point 4) */
+    .scope-scroll-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 24px;
+      padding: 3px 10px;
+    }
+    .scope-pills-scroll {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+    .scope-pills-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .scope-pills-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .scope-pill-btn {
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #334155;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .scope-pill-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    .scope-pill-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.35);
+    }
+
+    /* Interactive Pagination Numbers (Point 5) */
+    .page-num-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 6px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .page-num-btn:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    .page-num-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+    }
+    .page-num-btn.dots {
+      border: none;
+      background: transparent;
+      cursor: default;
+    }
+
+    /* Drag and Drop Styling for Kanban Pipeline (Point 7) */
+    .desk-card[draggable="true"] {
+      cursor: grab;
+      user-select: none;
+    }
+    .desk-card.is-dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+      border: 1px dashed #2563eb !important;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2) !important;
+    }
+    .kanban-desk-col.drag-target-over {
+      background: #f0fdf4 !important;
+      border-color: #22c55e !important;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3) !important;
+    }
+    .drag-grip-handle:hover {
+      color: #3b82f6 !important;
+    }
+
     /* --- Test Kanban Board (Matches Frappe Desk Screenshot 5) --- */
     .kanban-desk-theme {
       background: #ffffff;
       color: #0f172a;
       border: 1px solid var(--border-base, #e2e8f0);
       border-radius: 14px;
-      padding: 20px 24px 60px 24px;
+      padding: 16px 16px 40px 16px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      margin: 20px auto 60px auto;
-      max-width: 1440px;
+      margin: 16px auto 40px auto;
+      max-width: 1560px;
+      width: calc(100% - 32px);
+      box-sizing: border-box;
     }
 
     .kanban-desk-theme.light-mode {
@@ -1911,14 +2016,15 @@
 
     .kanban-desk-columns {
       display: grid;
-      grid-template-columns: repeat(5, minmax(270px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
       align-items: flex-start;
-      overflow-x: auto;
+      overflow-x: hidden;
       min-height: 560px;
-      padding-bottom: 40px;
-      margin-bottom: 30px;
-      scrollbar-width: thin;
+      padding-bottom: 24px;
+      margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .nav-user-account {
@@ -1981,6 +2087,9 @@
       min-height: 480px;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .kanban-desk-theme.light-mode .kanban-desk-col {
@@ -2075,15 +2184,18 @@
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 9px;
-      padding: 10px 12px;
+      padding: 9px 10px;
       color: #0f172a;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       transition: all 0.16s ease;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
       cursor: pointer;
       position: relative;
+      min-width: 0;
+      box-sizing: border-box;
+      word-break: break-word;
     }
 
     .desk-card:hover {
@@ -2902,34 +3014,35 @@
     
     <!-- Top Nav Header -->
     <header class="top-navbar">
-      <div class="nav-inner">
-        <!-- 1. Sleek Brand on Single Line -->
-        <div class="nav-brand">
-          <div class="brand-logo-mark">
-            <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+      <div class="nav-inner" style="max-width:1560px; width:calc(100% - 32px); height:100%; margin:0 auto; padding:0; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px;">
+        <!-- 1. Brand Logo Mark (Left Aligned) -->
+        <div class="nav-brand" style="cursor:pointer; justify-self:start; display:flex; align-items:center;" @click="openDiscoveryView" title="Talent Discovery">
+          <div class="brand-logo-mark" style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #0f172a, #1e293b); color:#ffffff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(15,23,42,0.16); transition:transform 0.15s ease;">
+            <i data-lucide="sparkles" style="width: 18px; height: 18px; color:#38bdf8;"></i>
           </div>
-          <span class="brand-name">Talent Discovery</span>
-          <span class="brand-badge-suite">HR Suite</span>
         </div>
 
-        <!-- 2. Creative Segmented Navigation Tabs on Single Line -->
-        <div class="view-mode-tabs">
+        <!-- 2. Navigation Tabs (Mathematically Centered in Screen) -->
+        <div class="view-mode-tabs" style="justify-self:center; display:inline-flex; align-items:center; background:#f1f5f9; border:1px solid #e2e8f0; padding:3px; border-radius:10px; gap:3px; height:36px; box-sizing:border-box;">
           <button 
             type="button" 
             class="view-tab-btn" 
             :class="{ active: currentViewMode === 'discovery' }"
-            @click="currentViewMode = 'discovery'">
-            <i data-lucide="search" style="width: 14px; height: 14px;"></i>
-            <span>Candidate Discovery</span>
+            @click="openDiscoveryView"
+            style="height:30px; padding:0 12px; font-size:0.79rem; border-radius:7px; font-weight:700;">
+            <i data-lucide="search" style="width: 13px; height: 13px;"></i>
+            <span>Discovery</span>
           </button>
-          
+
+          <!-- Applicant Pipeline Tab -->
           <button 
             type="button" 
             class="view-tab-btn" 
             :class="{ active: currentViewMode === 'kanban' }"
-            @click="openKanbanView">
-            <i data-lucide="kanban" style="width: 14px; height: 14px;"></i>
-            <span>Pipeline Kanban</span>
+            @click="openKanbanView"
+            style="height:30px; padding:0 12px; font-size:0.79rem; border-radius:7px; font-weight:700;">
+            <i data-lucide="kanban" style="width: 13px; height: 13px;"></i>
+            <span>Pipeline</span>
             <span class="tab-counter-badge" v-if="kanbanTotalCards">{{ kanbanTotalCards }}</span>
           </button>
 
@@ -2937,61 +3050,62 @@
             type="button" 
             class="view-tab-btn" 
             :class="{ active: currentViewMode === 'dashboard' }"
-            @click="openDashboardView">
-            <i data-lucide="bar-chart-3" style="width: 14px; height: 14px;"></i>
-            <span>Recruitment Dashboard</span>
+            @click="openDashboardView"
+            style="height:30px; padding:0 12px; font-size:0.79rem; border-radius:7px; font-weight:700;">
+            <i data-lucide="bar-chart-3" style="width: 13px; height: 13px;"></i>
+            <span>Dashboard</span>
           </button>
 
           <button 
             type="button" 
             class="view-tab-btn" 
             :class="{ active: currentViewMode === 'openings' }"
-            @click="openOpeningsView">
-            <i data-lucide="briefcase" style="width: 14px; height: 14px;"></i>
-            <span>{{ currentUserState.is_admin ? "Job Openings" : "My Job Openings" }}</span>
+            @click="openOpeningsView"
+            style="height:30px; padding:0 12px; font-size:0.79rem; border-radius:7px; font-weight:700;">
+            <i data-lucide="briefcase" style="width: 13px; height: 13px;"></i>
+            <span>Job Openings</span>
             <span class="tab-counter-badge">{{ visibleOpenings.length }}</span>
           </button>
-          <!-- Unified SuperAdmin Control Center (Visible only when Admin) -->
+
+          <!-- SuperAdmin Control Center -->
           <button
             v-if="currentUserState.is_admin"
             type="button"
             class="view-tab-btn"
             :class="{ active: currentViewMode === 'admin' }"
             @click="openAdminPanelView"
-            style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.12)); border: 1px solid rgba(99, 102, 241, 0.35); color: #4338ca; font-weight: 800;">
-            <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #4f46e5;"></i>
-            <span>SuperAdmin Center</span>
+            style="height:30px; padding:0 12px; font-size:0.79rem; border-radius:7px; font-weight:800; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.12)); border: 1px solid rgba(99, 102, 241, 0.35); color: #4338ca;">
+            <i data-lucide="shield-check" style="width: 13px; height: 13px; color: #4f46e5;"></i>
+            <span>SuperAdmin</span>
             <span class="tab-counter-badge" style="background:#4f46e5; color:#ffffff;">{{ adminRecruiters.length || '•' }}</span>
           </button>
-
-          
         </div>
 
-                <!-- Professional User Identity & Assigned Scope -->
-        <div class="nav-user-account" style="display:flex; align-items:center; gap:12px;">
-          <!-- Recruiter Multi-Job Dropdown Selector (Visible when Recruiter has multiple jobs assigned) -->
-          <div v-if="!currentUserState.is_admin && currentUserState.assigned_jobs && currentUserState.assigned_jobs.length > 1" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:20px; padding:4px 12px; display:inline-flex; align-items:center; gap:6px;">
+        <!-- 3. Scope & User Identity (Right Aligned, Matching 36px Height) -->
+        <div class="nav-user-account" style="justify-self:end; display:flex; align-items:center; gap:8px;">
+          <!-- Clean Scope Selector -->
+          <div class="scope-selector-box" style="height:36px; box-sizing:border-box; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:0 10px 0 9px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
             <i data-lucide="layers" style="width:13px; height:13px; color:#2563eb;"></i>
-            <span style="font-size:0.72rem; font-weight:800; color:#1e40af; text-transform:uppercase;">Scope:</span>
+            <span style="font-size:0.70rem; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:0.04em;">Scope:</span>
             <select
               v-model="activeRecruiterJobFilter"
               @change="onRecruiterJobFilterChange"
-              style="border:none; background:transparent; font-size:0.78rem; font-weight:800; color:#1e3a8a; cursor:pointer; outline:none; font-family:'JetBrains Mono', monospace;">
-              <option value="ALL_ASSIGNED">All My Jobs ({{ currentUserState.assigned_jobs.join(', ') }})</option>
-              <option v-for="j in currentUserState.assigned_jobs" :key="j" :value="j">{{ j }}</option>
+              style="border:none; background:transparent; font-size:0.76rem; font-weight:800; color:#1e3a8a; cursor:pointer; outline:none; font-family:'JetBrains Mono', monospace;">
+              <option value="ALL_ASSIGNED">All ({{ (currentUserState.assigned_jobs && currentUserState.assigned_jobs.length) ? currentUserState.assigned_jobs.join(', ') : 'Jobs' }})</option>
+              <option v-for="j in ((currentUserState.assigned_jobs && currentUserState.assigned_jobs.length) ? currentUserState.assigned_jobs : (activeOpeningsList && activeOpeningsList.map(o => o.job_id)) || ['J001'])" :key="j" :value="j">{{ j }}</option>
             </select>
           </div>
 
-          <!-- Professional User Profile Badge (Unified Sleek Dark Avatar & Clean Name Only) -->
-          <div class="account-select-wrapper" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:24px; padding:4px 14px 4px 6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
-            <div class="user-avatar-badge" style="background:#0f172a; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-              <i :data-lucide="currentUserState.is_admin ? 'shield-check' : 'user-check'" style="width: 14px; height: 14px; color:#ffffff;"></i>
+          <!-- Compact User Profile Badge (Matching 36px Height) -->
+          <div class="account-select-wrapper" style="height:36px; box-sizing:border-box; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:0 10px 0 6px; display:inline-flex; align-items:center; gap:7px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+            <div class="user-avatar-badge" style="background:#0f172a; color:#ffffff; width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;" :title="currentUserState.full_name || 'User'">
+              <i :data-lucide="currentUserState.is_admin ? 'shield-check' : 'user'" style="width: 13px; height: 13px; color:#ffffff;"></i>
             </div>
-            <div style="display:flex; align-items:center;">
-              <span style="font-weight:700; font-size:0.85rem; color:#0f172a; white-space:nowrap;">{{ currentUserState.full_name || 'Administrator' }}</span>
-            </div>
-            <!-- Clean Sign Out -->
-            <a href="/login" style="margin-left:4px; color:#94a3b8; text-decoration:none; display:inline-flex; align-items:center;" title="Sign Out">
+            <span style="font-weight:700; font-size:0.78rem; color:#0f172a; white-space:nowrap;">
+              {{ currentUserState.is_admin ? 'Admin' : (currentUserState.full_name ? currentUserState.full_name.split(' ')[0] : 'Recruiter') }}
+            </span>
+            <!-- Sign Out Icon -->
+            <a href="/login" style="margin-left:3px; color:#94a3b8; text-decoration:none; display:inline-flex; align-items:center;" title="Sign Out">
               <i data-lucide="log-out" style="width:13px; height:13px;"></i>
             </a>
           </div>
@@ -3128,18 +3242,32 @@
             </select>
           </div>
 
-          <!-- 6. Custom Expected Salary Input (Required Feature) -->
+          <!-- Point 9: Expected Salary Min & Max Range Filter -->
           <div class="filter-block">
             <label class="filter-label">
-              <span>Expected Salary (Up to / Match)</span>
-              <span v-if="filterExpectedSalary" style="color:var(--text-primary); font-weight:700;">({{ filterExpectedSalary }})</span>
+              <span>Expected Salary Range (₹)</span>
+              <span v-if="filterSalaryMin || filterSalaryMax" style="color:var(--text-primary); font-weight:700;">
+                ({{ filterSalaryMin || '0' }} - {{ filterSalaryMax || 'Any' }})
+              </span>
             </label>
-            <input 
-              type="text" 
-              class="filter-input" 
-              v-model="filterExpectedSalary" 
-              placeholder="e.g. 25000 or ₹25,000/mo" 
-              @input="debouncedSearch">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+              <input 
+                type="text" 
+                class="filter-input" 
+                v-model="filterSalaryMin" 
+                placeholder="Min (e.g. 15000)" 
+                @input="debouncedSearch"
+                @change="triggerSearch(1)"
+                @keyup.enter="triggerSearch(1)">
+              <input 
+                type="text" 
+                class="filter-input" 
+                v-model="filterSalaryMax" 
+                placeholder="Max (e.g. 35000)" 
+                @input="debouncedSearch"
+                @change="triggerSearch(1)"
+                @keyup.enter="triggerSearch(1)">
+            </div>
           </div>
 
           <!-- 7. Domain / Industry Filter (Required Feature) -->
@@ -3192,43 +3320,24 @@
           <!-- Simple, Intuitive Talent Pool & Group Filter Toolbar -->
           <div class="portal-tabs-nav" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px; background:#f8fafc; padding:8px 12px; border-radius:10px; border:1px solid var(--border-base);">
             
-            <!-- 3 Clear Pool Tabs -->
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button 
-                type="button" 
-                class="portal-tab-btn" 
-                :class="{ active: activeViewTab === 'all' && !filterGroup }" 
-                @click="setViewTab('all')">
-                <i data-lucide="users" style="width: 14px; height: 14px;"></i>
-                <span>All Candidates ({{ totalPoolCount }})</span>
-              </button>
-
+            <!-- Point 1: ONLY 2 Clear Boxes: Available Candidates and In Groups / Selected -->
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button 
                 type="button" 
                 class="portal-tab-btn" 
                 :class="{ active: activeViewTab === 'available' }" 
                 @click="setViewTab('available')">
                 <i data-lucide="user-check" style="width: 14px; height: 14px; color:#10b981;"></i>
-                <span>Available to Select ({{ availableCandidatesCount }})</span>
+                <span>Available Candidates ({{ availableCandidatesCount }})</span>
               </button>
 
               <button 
                 type="button" 
                 class="portal-tab-btn" 
-                :class="{ active: activeViewTab === 'groups' && !filterGroup && !filterOnlyMyJob }" 
+                :class="{ active: activeViewTab === 'groups' }" 
                 @click="filterOnlyMyJob = false; setViewTab('groups')">
                 <i data-lucide="folder-check" style="width: 14px; height: 14px; color:#2563eb;"></i>
-                <span>In Groups / Drives ({{ selectedCandidatesCount }})</span>
-              </button>
-
-              <button 
-                v-if="activeRecruiterJobId !== 'All'"
-                type="button" 
-                class="portal-tab-btn" 
-                :class="{ active: filterOnlyMyJob }" 
-                @click="toggleOnlyMyJob">
-                <i data-lucide="user-check" style="width: 14px; height: 14px; color:#6366f1;"></i>
-                <span>My {{ activeRecruiterJobId }} Candidates</span>
+                <span>In Groups / Selected ({{ selectedCandidatesCount }})</span>
               </button>
             </div>
 
@@ -3352,6 +3461,8 @@
                 </div>
               </div>
 
+
+
               <!-- Metadata Badges Strip -->
               <div class="meta-badges-strip">
                 <div class="meta-chip">
@@ -3423,6 +3534,18 @@
                     :title="'Candidate already locked for ' + activeRecruiterJobId + ' by ' + (cand.my_job_lock ? cand.my_job_lock.selected_by : cand.selected_by)">
                     <i data-lucide="lock" style="width: 13px; height: 13px;"></i>
                     <span>Locked ({{ activeRecruiterJobId }})</span>
+                  </button>
+
+                  <!-- Separate Candidate Unlock Button (Direct Candidate ID Unlock) -->
+                  <button 
+                    v-if="cand.job_locks && Object.keys(cand.job_locks).length"
+                    type="button" 
+                    class="comm-btn comm-btn-unlock" 
+                    style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;" 
+                    @click.stop="unlockSingleCandidate(cand)" 
+                    title="Unlock this candidate from job lock and make Available">
+                    <i data-lucide="unlock" style="width:13px; height:13px;"></i>
+                    <span>Unlock</span>
                   </button>
 
                   <!-- WhatsApp Direct -->
@@ -3507,13 +3630,13 @@
             </div>
           </div>
 
-          <!-- Pagination Bar -->
-          <div class="pagination-bar" v-if="totalPages > 1">
-            <div class="page-info">
-              Page <b>{{ currentPage }}</b> of <b>{{ totalPages }}</b> ({{ totalCount }} candidates)
+          <!-- Point 5: Enhanced Pagination with Clickable Page Numbers & Exact Data Lines Range -->
+          <div class="pagination-bar" v-if="totalCount > 0">
+            <div class="page-info" style="font-size:0.84rem; color:#475569;">
+              Showing <b>{{ (currentPage - 1) * pageSize + 1 }}</b> - <b>{{ Math.min(currentPage * pageSize, totalCount) }}</b> of <b>{{ totalCount }}</b> recruiter candidate lines (Page <b>{{ currentPage }}</b> of <b>{{ totalPages }}</b>)
             </div>
 
-            <div class="page-btn-group">
+            <div class="page-btn-group" style="display:flex; align-items:center; gap:4px;">
               <button 
                 type="button" 
                 class="page-nav-btn" 
@@ -3522,6 +3645,20 @@
                 <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
                 <span>Previous</span>
               </button>
+
+              <!-- Page Number Buttons -->
+              <div style="display:inline-flex; align-items:center; gap:4px;">
+                <button 
+                  v-for="p in visiblePages" 
+                  :key="p" 
+                  type="button" 
+                  class="page-num-btn" 
+                  :class="{ active: p === currentPage, dots: p === '...' }" 
+                  :disabled="p === '...'"
+                  @click="p !== '...' && changePage(p)">
+                  {{ p }}
+                </button>
+              </div>
 
               <button 
                 type="button" 
@@ -3580,6 +3717,17 @@
             <button type="button" class="comm-btn comm-btn-edit" @click="openEditModal(selectedCandidate)" title="Edit Candidate Details">
               <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
               <span>Edit</span>
+            </button>
+            <!-- Unlock Candidate in Dossier Modal -->
+            <button 
+              v-if="selectedCandidate && selectedCandidate.job_locks && Object.keys(selectedCandidate.job_locks).length"
+              type="button" 
+              class="comm-btn" 
+              style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;" 
+              @click="unlockSingleCandidate(selectedCandidate)" 
+              title="Unlock candidate and make Available immediately">
+              <i data-lucide="unlock" style="width:13px; height:13px;"></i>
+              <span>Unlock Candidate</span>
             </button>
             <button type="button" class="comm-btn comm-btn-delete" @click="deleteCandidate(selectedCandidate)" title="Delete this Candidate">
               <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
@@ -3911,16 +4059,22 @@
 
           <div style="max-height: 330px; overflow-y: auto; padding-right: 6px; display:flex; flex-direction:column; gap:8px;">
             <div 
-              v-for="op in (allOpenings.length ? allOpenings.filter(o => o.status === 'Open') : jobOpenings)" 
+              v-for="op in getAvailableOpeningsForModal" 
               :key="op.job_id"
-              @click="!isCandidateLockedForJob(op.job_id) && (selectForm.selected_job_id = op.job_id)"
+              @click="!isCandidateLockedForJob(op.job_id) && toggleJobSelection(op.job_id)"
               class="job-option-card"
               :class="{
-                'selected': selectForm.selected_job_id === op.job_id,
+                'selected': selectedJobIds.includes(op.job_id),
                 'disabled': isCandidateLockedForJob(op.job_id)
-              }">
+              }"
+              style="cursor:pointer; transition: all 0.15s ease;">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
+                  <div 
+                    style="width:18px; height:18px; border-radius:5px; display:flex; align-items:center; justify-content:center; border:2px solid #cbd5e1; flex-shrink:0; transition:all 0.15s ease;"
+                    :style="selectedJobIds.includes(op.job_id) ? 'background:#2563eb; border-color:#2563eb; color:#ffffff;' : 'background:#ffffff;'">
+                    <i v-if="selectedJobIds.includes(op.job_id)" data-lucide="check" style="width:12px; height:12px;"></i>
+                  </div>
                   <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()">{{ op.job_id }}</span>
                   <div>
                     <div style="font-weight:700; font-size:0.88rem; color:#0f172a;">{{ op.job_title }}</div>
@@ -3931,7 +4085,7 @@
                   <span v-if="isCandidateLockedForJob(op.job_id)" style="font-size:0.75rem; color:#b91c1c; font-weight:700; background:#fef2f2; padding:3px 8px; border-radius:6px;">
                     🔒 Locked
                   </span>
-                  <span v-else-if="selectForm.selected_job_id === op.job_id" style="font-size:0.75rem; color:#1d4ed8; font-weight:700; background:#dbeafe; padding:3px 8px; border-radius:6px;">
+                  <span v-else-if="selectedJobIds.includes(op.job_id)" style="font-size:0.75rem; color:#1d4ed8; font-weight:700; background:#dbeafe; padding:3px 8px; border-radius:6px;">
                     ✓ Selected
                   </span>
                   <span v-else style="font-size:0.75rem; color:#059669; font-weight:600; background:#ecfdf5; padding:3px 8px; border-radius:6px;">
@@ -3952,11 +4106,13 @@
             type="button" 
             class="comm-btn comm-btn-select" 
             style="padding:9px 20px; font-size:0.88rem;"
-            :disabled="isClaiming || isCandidateLockedForJob(selectForm.selected_job_id)"
+            :disabled="isClaiming || !selectedJobIds.length"
             @click="submitCandidateClaim">
             <i data-lucide="lock" style="width:14px; height:14px;" v-if="!isClaiming"></i>
             <i data-lucide="loader-2" style="width:14px; height:14px; animation: spin 1s linear infinite;" v-else></i>
-            <span>{{ isClaiming ? 'Locking...' : 'Confirm & Lock (' + selectForm.selected_job_id + ')' }}</span>
+            <span>
+              {{ isClaiming ? 'Locking...' : (selectedJobIds.length === 1 ? 'Confirm & Lock (' + selectedJobIds[0] + ')' : (selectedJobIds.length > 1 ? 'Confirm & Lock ' + selectedJobIds.length + ' Groups (' + selectedJobIds.join(', ') + ')' : 'Select Job Opening')) }}
+            </span>
           </button>
         </div>
       </div>
@@ -4037,12 +4193,16 @@
         </div>
       </div>
 
-      <!-- 5 Columns (Open, Replied, Shortlisted, Rejected, Hold) matching Screenshot 5 -->
+      <!-- Point 7: Kanban Desk Columns with HTML5 Drag-and-Drop Drop Targets -->
       <div class="kanban-desk-columns">
         <div 
           v-for="col in kanbanColumns.filter(c => ['Open', 'Replied', 'Shortlisted', 'Rejected', 'Hold'].includes(c.id))" 
           :key="col.id" 
-          class="kanban-desk-col">
+          class="kanban-desk-col"
+          :class="{ 'drag-target-over': dragOverColId === col.id }"
+          @dragover.prevent="onDragOverCol($event, col.id)"
+          @dragleave="onDragLeaveCol($event, col.id)"
+          @drop="onDropKanbanCard($event, col.id)">
           
           <div class="kanban-desk-col-top">
             <span class="desk-col-heading">
@@ -4063,11 +4223,18 @@
               v-for="card in getFilteredCards(col.cards)" 
               :key="card.card_key" 
               class="desk-card"
+              :class="{ 'is-dragging': draggedCard && draggedCard.card_key === card.card_key }"
+              draggable="true"
+              @dragstart="onDragStartCard($event, card, col.id)"
+              @dragend="onDragEndCard($event)"
               @click="openCandidateProfile(card)">
               
               <!-- Top Row: Badges (Job ID + Recruiter) on Left, Stage Select on Right -->
               <div class="desk-card-top-bar">
-                <div class="desk-card-badges">
+                <div class="desk-card-badges" style="display:flex; align-items:center; gap:6px;">
+                  <span class="drag-grip-handle" title="Drag to move candidate across pipeline columns" style="cursor:grab; display:flex; align-items:center; color:#94a3b8;">
+                    <i data-lucide="grip-vertical" style="width:13px; height:13px;"></i>
+                  </span>
                   <span class="job-id-pill" :class="'pill-' + (card.job_id || 'j001').toLowerCase()">
                     {{ card.job_id || 'J001' }}
                   </span>
@@ -4332,7 +4499,7 @@
               <div style="display:flex; align-items:center; gap:8px;">
                 <span class="badge-open" style="font-size:0.75rem; padding:4px 10px;">● Open for Sourcing</span>
                 <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()" style="font-size:0.75rem;">
-                  {{ op.candidate_count || 0 }} in Pipeline
+                  {{ op.candidate_count || 0 }} Candidates
                 </span>
               </div>
             </div>
@@ -4420,16 +4587,18 @@
         <table class="openings-table">
           <thead>
             <tr>
+              <th style="width:40px;">#</th>
               <th>Job Title & ID</th>
               <th>Designation</th>
+              <th>Description & Criteria</th>
               <th>Hiring Status</th>
-              <th>Web Desk Publish Status</th>
               <th>Candidates</th>
               <th style="text-align:right;">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="op in visibleOpenings" :key="op.name">
+            <tr v-for="(op, opIdx) in visibleOpenings" :key="op.name">
+              <td style="font-weight:700; color:#64748b; font-size:0.8rem;">#{{ opIdx + 1 }}</td>
               <td>
                 <div style="font-weight:700; color:#0f172a; font-size:0.92rem;">{{ op.job_title }}</div>
                 <div style="font-size:0.75rem; color:#64748b;">ID: {{ op.name }} &bull; Job ID: <b>{{ op.job_id }}</b></div>
@@ -4437,45 +4606,67 @@
               <td>
                 <span style="font-weight:600; color:#334155;">{{ op.designation }}</span>
               </td>
+              <td style="max-width:260px;">
+                <div v-if="op.description" style="font-size:0.75rem; color:#475569; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;" :title="op.description">
+                  {{ op.description }}
+                </div>
+                <div v-else style="font-size:0.72rem; color:#94a3b8; font-style:italic;">
+                  No description provided
+                </div>
+              </td>
               <td>
                 <span :class="op.status === 'Open' ? 'badge-open' : 'badge-closed'">
                   {{ op.status === 'Open' ? '● Open' : '○ Closed' }}
                 </span>
               </td>
-              <td>
-                <button 
-                  type="button" 
-                  class="desk-btn" 
-                  :style="op.publish ? 'background:#eff6ff; color:#1d4ed8; border-color:#93c5fd;' : 'background:#f8fafc; color:#64748b; border-color:#cbd5e1;'"
-                  @click="togglePublish(op)">
-                  <i :data-lucide="op.publish ? 'globe' : 'lock'" style="width:12px; height:12px;"></i>
-                  <span>{{ op.publish ? '🌐 Published on Web Desk' : '🔒 Hidden from Web Desk' }}</span>
-                </button>
-              </td>
+
               <td>
                 <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()">
                   {{ op.candidate_count || 0 }} Candidates
                 </span>
               </td>
               <td style="text-align:right;">
-                <button 
-                  v-if="op.status === 'Open'" 
-                  type="button" 
-                  class="desk-btn" 
-                  style="background:#fef2f2; color:#b91c1c; border-color:#fecaca;"
-                  @click="toggleStatus(op, 'Closed')"
-                  title="Close this opening (will hide from active web desk candidate selection)">
-                  <span>Close Job</span>
-                </button>
-                <button 
-                  v-else 
-                  type="button" 
-                  class="desk-btn" 
-                  style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0;"
-                  @click="toggleStatus(op, 'Open')"
-                  title="Re-open this opening (will show in web desk candidate selection)">
-                  <span>Re-open Job</span>
-                </button>
+                <div style="display:inline-flex; align-items:center; gap:6px;">
+                  <!-- Edit Criteria & Description Button -->
+                  <button 
+                    type="button" 
+                    class="desk-btn" 
+                    style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;"
+                    @click="openEditOpeningModal(op)"
+                    title="Edit description, hiring criteria, and assigned recruiters">
+                    <i data-lucide="edit-3" style="width:12px; height:12px;"></i>
+                    <span>Edit Criteria</span>
+                  </button>
+                  <!-- Unlock Candidates Button (Only when opening actually has candidates) -->
+                  <button 
+                    v-if="op.candidate_count > 0"
+                    type="button" 
+                    class="desk-btn" 
+                    style="background:#fef3c7; color:#92400e; border-color:#fde68a;"
+                    @click="unlockCandidatesForJob(op.job_id)"
+                    title="Unlock / release all candidates locked under this Job ID (free up candidates)">
+                    <i data-lucide="unlock" style="width:12px; height:12px;"></i>
+                    <span>Unlock</span>
+                  </button>
+                  <button 
+                    v-if="op.status === 'Open'" 
+                    type="button" 
+                    class="desk-btn" 
+                    style="background:#fef2f2; color:#b91c1c; border-color:#fecaca;"
+                    @click="toggleStatus(op, 'Closed')"
+                    title="Close this opening (will automatically unlock all candidates from this Job ID)">
+                    <span>Close Job</span>
+                  </button>
+                  <button 
+                    v-else 
+                    type="button" 
+                    class="desk-btn" 
+                    style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0;"
+                    @click="toggleStatus(op, 'Open')"
+                    title="Re-open this opening (will show in web desk candidate selection)">
+                    <span>Re-open Job</span>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -4662,7 +4853,7 @@
                   {{ rec.is_active ? 'Active' : 'Disabled' }}
                 </span>
                 <span style="font-size:0.72rem; font-weight:700; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:2px 8px; border-radius:12px;">
-                  {{ rec.total_candidates || 0 }} in Pipeline
+                  {{ rec.total_candidates || 0 }} Assigned
                 </span>
                 <button 
                   type="button" 
@@ -5003,6 +5194,81 @@
       </div>
     </div>
 
+    
+    <!-- Modal to Edit Job Opening Description & Criteria -->
+    <div class="modal-backdrop" v-if="showEditOpeningModal" @click.self="showEditOpeningModal = false">
+      <div class="profile-modal" style="max-width: 500px; padding: 22px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="edit-3" style="width:20px; height:20px; color:#2563eb;"></i>
+            <span>Edit Opening: {{ editOpeningForm.job_id }}</span>
+          </h3>
+          <button class="btn-close-modal" @click="showEditOpeningModal = false">&times;</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Job Title</label>
+            <input type="text" class="filter-input" v-model="editOpeningForm.job_title" style="width:100%; margin-top:4px;">
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Job Description & Hiring Criteria</label>
+              <span style="font-size:0.70rem; color:#64748b;">Click tags to quickly add</span>
+            </div>
+            <!-- Quick Click-to-Add Criteria Options / Tags -->
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin:6px 0 8px 0;">
+              <button 
+                v-for="opt in criteriaPresetOptions" 
+                :key="opt" 
+                type="button" 
+                @click="appendCriteriaPreset(opt, 'edit')"
+                style="border:1px solid #cbd5e1; background:#f8fafc; color:#334155; font-size:0.70rem; font-weight:700; padding:3px 8px; border-radius:12px; cursor:pointer; transition:all 0.15s ease;">
+                + {{ opt }}
+              </button>
+            </div>
+            <textarea 
+              class="filter-input" 
+              v-model="editOpeningForm.description" 
+              placeholder="Key responsibilities, required skills, salary budget, qualifications..." 
+              rows="4" 
+              style="width:100%; font-size:0.82rem; resize:vertical;">
+            </textarea>
+          </div>
+
+          <!-- Assign Recruiters who will find candidates for this Job ID -->
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="users" style="width:13px; height:13px; color:#2563eb;"></i>
+              <span>Assigned Recruiters (Who can source for {{ editOpeningForm.job_id }})</span>
+            </label>
+            <div style="max-height:130px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:6px; margin-top:4px; display:flex; flex-direction:column; gap:5px; background:#fafafa;">
+              <label 
+                v-for="rec in adminRecruiters" 
+                :key="rec.user_email" 
+                style="display:flex; align-items:center; gap:8px; font-size:0.78rem; font-weight:600; color:#0f172a; cursor:pointer; padding:3px 6px; border-radius:6px; background:#ffffff; border:1px solid #f1f5f9;">
+                <input 
+                  type="checkbox" 
+                  :value="rec.user_email" 
+                  v-model="editOpeningForm.selected_recruiters" 
+                  style="width:15px; height:15px; cursor:pointer;">
+                <span>{{ rec.recruiter_name }} <span style="font-size:0.70rem; color:#64748b;">({{ rec.user_email }})</span></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #e2e8f0; padding-top:12px;">
+          <button type="button" class="btn-cancel" @click="showEditOpeningModal = false">Cancel</button>
+          <button type="button" class="nav-btn nav-btn-solid" style="padding: 9px 20px; font-size: 0.86rem;" :disabled="isSavingOpeningEdit" @click="submitEditJobOpening">
+            <i data-lucide="check" style="width:13px; height:13px;"></i>
+            <span>{{ isSavingOpeningEdit ? 'Saving...' : 'Save Criteria & Assignments' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal to Add New Job Opening -->
     <div class="modal-backdrop" v-if="showNewOpeningModal" @click.self="showNewOpeningModal = false">
       <div class="profile-modal" style="max-width: 480px; padding: 22px;">
@@ -5084,6 +5350,53 @@
             </p>
           </div>
 
+          <!-- Job Opening Description & Hiring Criteria with Clickable Preset Options -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Job Description & Hiring Criteria</label>
+              <span style="font-size:0.70rem; color:#64748b;">Click tags to quickly add</span>
+            </div>
+            <!-- Quick Click-to-Add Criteria Options / Tags -->
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin:6px 0 8px 0;">
+              <button 
+                v-for="opt in criteriaPresetOptions" 
+                :key="opt" 
+                type="button" 
+                @click="appendCriteriaPreset(opt, 'create')"
+                style="border:1px solid #cbd5e1; background:#f8fafc; color:#334155; font-size:0.70rem; font-weight:700; padding:3px 8px; border-radius:12px; cursor:pointer; transition:all 0.15s ease;">
+                + {{ opt }}
+              </button>
+            </div>
+            <textarea 
+              class="filter-input" 
+              v-model="newOpeningForm.description" 
+              placeholder="Key responsibilities, required skills, salary budget, qualifications..." 
+              rows="3" 
+              style="width:100%; font-size:0.82rem; resize:vertical;">
+            </textarea>
+          </div>
+
+          <!-- Assign Recruiters who will find candidates for this Job ID -->
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="users" style="width:13px; height:13px; color:#2563eb;"></i>
+              <span>Assign Recruiters (Who will source for this Job ID)</span>
+            </label>
+            <div style="max-height:130px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:6px; margin-top:4px; display:flex; flex-direction:column; gap:5px; background:#fafafa;">
+              <label 
+                v-for="rec in adminRecruiters" 
+                :key="rec.user_email" 
+                style="display:flex; align-items:center; gap:8px; font-size:0.78rem; font-weight:600; color:#0f172a; cursor:pointer; padding:3px 6px; border-radius:6px; background:#ffffff; border:1px solid #f1f5f9;">
+                <input 
+                  type="checkbox" 
+                  :value="rec.user_email" 
+                  v-model="newOpeningForm.selected_recruiters" 
+                  style="width:15px; height:15px; cursor:pointer;">
+                <span>{{ rec.recruiter_name }} <span style="font-size:0.70rem; color:#64748b;">({{ rec.user_email }})</span></span>
+              </label>
+            </div>
+          </div>
+
           <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
             <input type="checkbox" id="pub_check" v-model="newOpeningForm.publish" style="width:16px; height:16px; cursor:pointer;">
             <label for="pub_check" style="font-size:0.85rem; font-weight:600; color:#1e293b; cursor:pointer;">Show / Publish on Web Desk immediately</label>
@@ -5149,10 +5462,12 @@
 
         // Custom Filters
         const filterExpectedSalary = ref('');
+        const filterSalaryMin = ref('');
+        const filterSalaryMax = ref('');
         const filterDomain = ref('');
         const filterDomainText = ref('');
         const filterGroup = ref('');
-        const activeViewTab = ref('all');
+        const activeViewTab = ref('available');
         const totalPoolCount = ref(0);
         const selectedCandidatesCount = ref(0);
         const availableCandidatesCount = ref(0);
@@ -6011,8 +6326,14 @@
             if (selectedLocation.value) params.append('location', selectedLocation.value);
             if (maxCtc.value) params.append('max_ctc', maxCtc.value);
 
-            // Custom Salary filter
-            if (filterExpectedSalary.value.trim()) {
+            // Salary Range filter (Min / Max) - Strictly sent directly
+            if (filterSalaryMin.value && filterSalaryMin.value.trim()) {
+              params.append('filter_salary_min', filterSalaryMin.value.trim());
+            }
+            if (filterSalaryMax.value && filterSalaryMax.value.trim()) {
+              params.append('filter_salary_max', filterSalaryMax.value.trim());
+            }
+            if (filterExpectedSalary.value && filterExpectedSalary.value.trim()) {
               params.append('filter_expected_salary', filterExpectedSalary.value.trim());
             }
 
@@ -6206,6 +6527,11 @@
             customOfficeMode.value = false;
           }
 
+          selectedJobIds.value = [];
+          const avail = getAvailableOpeningsForModal.value.filter(o => !isCandidateLockedForJob(o.job_id));
+          if (avail.length) {
+            selectedJobIds.value = [avail[0].job_id];
+          }
           showSelectionModal.value = true;
           nextTick(() => lucide.createIcons());
         };
@@ -6213,7 +6539,13 @@
         const submitCandidateClaim = async () => {
           if (!modalCandidate.value) return;
           const f = selectForm.value;
-          const targetJid = (!currentUserState.value.is_admin && currentUserState.value.assigned_job_id) ? currentUserState.value.assigned_job_id : (f.selected_job_id === 'CUSTOM' ? (customJobIdInput.value.trim() || 'CUSTOM') : (f.selected_job_id || activeRecruiterJobId.value || 'J001'));
+          let targetJids = (selectedJobIds.value && selectedJobIds.value.length) ? selectedJobIds.value : [f.selected_job_id || 'J001'];
+          if (!currentUserState.value.is_admin) {
+            const allowed = currentUserState.value.assigned_jobs || (currentUserState.value.assigned_job_id ? currentUserState.value.assigned_job_id.split(',').map(s=>s.trim()) : ['J001']);
+            targetJids = targetJids.filter(j => allowed.includes(j));
+            if (!targetJids.length) targetJids = [allowed[0]];
+          }
+          const targetJid = targetJids.join(',');
           const recruiterName = (!currentUserState.value.is_admin && currentUserState.value.full_name) ? currentUserState.value.full_name : (f.recruiter_name?.trim() || localStorage.getItem('candidate_recruiter_name') || 'Recruiter');
           const candCity = modalCandidate.value.current_location?.trim() || 'Patna';
           const candRole = modalCandidate.value.position_applied?.trim() || 'Analyst';
@@ -6269,7 +6601,7 @@
         const allOpenings = ref([]);
         const isCreatingOpening = ref(false);
         const showNewOpeningModal = ref(false);
-        const newOpeningForm = ref({ job_title: '', job_id: '', designation: '', publish: true });
+        const newOpeningForm = ref({ job_title: '', job_id: '', designation: '', publish: true, description: '', selected_recruiters: [] });
         const showAddApplicantModal = ref(false);
         const quickApplicantForm = ref({ name: '', email: '', job_title: '', column_id: 'Open' });
 
@@ -6380,7 +6712,9 @@
               job_title: newOpeningForm.value.job_title,
               job_id: newOpeningForm.value.job_id,
               designation: newOpeningForm.value.designation || 'Analyst',
-              publish: newOpeningForm.value.publish ? '1' : '0'
+              publish: newOpeningForm.value.publish ? '1' : '0',
+              description: newOpeningForm.value.description || '',
+              recruiters: (newOpeningForm.value.selected_recruiters || []).join(',')
             });
             const res = await fetch(`/api/method/face_attendance.api.create_new_job_opening?${params.toString()}`);
             const json = await res.json();
@@ -6514,6 +6848,8 @@
           selectedLocation.value = '';
           maxCtc.value = '';
           filterExpectedSalary.value = '';
+          filterSalaryMin.value = '';
+          filterSalaryMax.value = '';
           filterDomain.value = '';
           filterDomainText.value = '';
           filterGroup.value = '';
@@ -6776,7 +7112,270 @@
           nextTick(() => lucide.createIcons());
         });
 
+        
+        // Point 4: Scope Scroll View Pill Selection
+        const setScopeJobFilter = (jobId) => {
+          activeRecruiterJobFilter.value = jobId;
+          onRecruiterJobFilterChange();
+        };
+
+        // Point 5: Computed Clickable Page Numbers
+        const visiblePages = computed(() => {
+          const total = totalPages.value;
+          const cur = currentPage.value;
+          if (total <= 7) {
+            return Array.from({ length: total }, (_, i) => i + 1);
+          }
+          const pages = [1];
+          if (cur > 3) pages.push('...');
+          const start = Math.max(2, cur - 1);
+          const end = Math.min(total - 1, cur + 1);
+          for (let i = start; i <= end; i++) {
+            pages.push(i);
+          }
+          if (cur < total - 2) pages.push('...');
+          pages.push(total);
+          return pages;
+        });
+
+        // Point 7: Native HTML5 Drag and Drop Handlers for Kanban Desk
+        const draggedCard = ref(null);
+        const draggedSourceCol = ref(null);
+        const dragOverColId = ref(null);
+
+        const onDragStartCard = (evt, card, sourceColId) => {
+          draggedCard.value = card;
+          draggedSourceCol.value = sourceColId;
+          if (evt.dataTransfer) {
+            evt.dataTransfer.effectAllowed = 'move';
+            evt.dataTransfer.setData('text/plain', JSON.stringify({ cardKey: card.card_key, candidateId: card.id, sourceCol: sourceColId }));
+          }
+        };
+
+        const onDragEndCard = (evt) => {
+          draggedCard.value = null;
+          draggedSourceCol.value = null;
+          dragOverColId.value = null;
+        };
+
+        const onDragOverCol = (evt, colId) => {
+          evt.preventDefault();
+          dragOverColId.value = colId;
+        };
+
+        const onDragLeaveCol = (evt, colId) => {
+          if (dragOverColId.value === colId) {
+            dragOverColId.value = null;
+          }
+        };
+
+        const onDropKanbanCard = async (evt, targetColId) => {
+          evt.preventDefault();
+          dragOverColId.value = null;
+          if (!draggedCard.value || !targetColId) return;
+          if (draggedSourceCol.value === targetColId) {
+            draggedCard.value = null;
+            draggedSourceCol.value = null;
+            return;
+          }
+
+          const card = draggedCard.value;
+          draggedCard.value = null;
+          draggedSourceCol.value = null;
+
+          await moveKanbanCard(card, targetColId);
+        };
+
+                // Separate Candidate ID Unlock Handler (Instant reactive refresh without page reload)
+        const unlockSingleCandidate = async (cand) => {
+          if (!cand) return;
+          if (!confirm(`Are you sure you want to unlock ${cand.candidate_name}? They will be freed up and become Available immediately.`)) return;
+          try {
+            const res = await fetch(`/api/method/face_attendance.api.release_candidate_atomic?candidate_id=${encodeURIComponent(cand.name)}`);
+            const json = await res.json();
+            if (json.message?.success) {
+              showToast('Candidate Unlocked', `${cand.candidate_name} has been unlocked and is now Available.`, 'success');
+              cand.job_locks = {};
+              cand.selection_status = 'Available';
+              cand.selected_by = null;
+              cand.is_locked_for_my_job = false;
+              // Reactively refresh all data across the app:
+              fetchCandidates();
+              fetchAllOpenings();
+              fetchJobOpenings();
+              fetchDashboardStats();
+              if (selectedCandidate.value && selectedCandidate.value.name === cand.name) {
+                selectedCandidate.value.job_locks = {};
+                selectedCandidate.value.selection_status = 'Available';
+                selectedCandidate.value.selected_by = null;
+              }
+            } else {
+              showToast('Unlock Failed', json.message?.message || 'Could not unlock candidate.', 'error');
+            }
+          } catch (e) {
+            showToast('Error', e.message, 'error');
+          }
+        };
+
+        const openDiscoveryView = () => {
+          currentViewMode.value = 'discovery';
+          fetchCandidates();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Point 3: Dedicated Unlock Candidates for Job ID
+        const unlockCandidatesForJob = async (jobId) => {
+          if (!jobId) return;
+          if (!confirm(`Are you sure you want to unlock all candidates from ${jobId}? They will be freed up and become Available for all recruiters.`)) return;
+          try {
+            const res = await fetch(`/api/method/face_attendance.api.unlock_job_id_candidates?job_id=${encodeURIComponent(jobId)}`);
+            const json = await res.json();
+            const msg = json.message || {};
+            if (msg.success) {
+              showToast('Candidates Unlocked', msg.message || `Candidates unlocked from ${jobId}.`, 'success');
+              fetchCandidates();
+              fetchJobOpenings();
+              fetchAllOpenings();
+              if (currentViewMode.value === 'kanban') fetchKanbanBoard();
+            } else {
+              showToast('Unlock Failed', msg.message || 'Could not unlock candidates.', 'error');
+            }
+          } catch (e) {
+            showToast('Error', e.message, 'error');
+          }
+        };
+
+        // Point 2: Available Openings for Recruiter in Selection Modal (Gives permission for both assigned jobs)
+        const getAvailableOpeningsForModal = computed(() => {
+          const all = allOpenings.value.length ? allOpenings.value : jobOpenings.value;
+          const openList = all.filter(o => o.status === 'Open');
+          if (currentUserState.value.is_admin) {
+            return openList;
+          }
+          const myJobs = currentUserState.value.assigned_jobs || (currentUserState.value.assigned_job_id ? currentUserState.value.assigned_job_id.split(',').map(s=>s.trim()) : ['J001']);
+          const myOpenings = openList.filter(o => myJobs.includes(o.job_id));
+          return myOpenings.length ? myOpenings : openList;
+        });
+
+        
+        // Multi-Job Selection for Candidates (Point 2: Add 1 candidate to 2 or more groups)
+        const selectedJobIds = ref([]);
+        const toggleJobSelection = (jobId) => {
+          if (selectedJobIds.value.includes(jobId)) {
+            selectedJobIds.value = selectedJobIds.value.filter(id => id !== jobId);
+          } else {
+            selectedJobIds.value.push(jobId);
+          }
+        };
+
+        // Quick Click-to-Add Criteria Presets (Point 1: Make job criteria easy to find & edit)
+        const criteriaPresetOptions = ref([
+          'Field Sales & B2B',
+          'Telecalling & BPO',
+          'Python / Fullstack Dev',
+          'Digital Marketing',
+          'Accounting & Tally',
+          'Fresher (0-1 Yr)',
+          '1-3 Yrs Exp',
+          '3-5 Yrs Exp',
+          '₹15k - ₹25k/mo',
+          '₹25k - ₹40k/mo',
+          'Immediate Joiner',
+          'Patna Local HQ'
+        ]);
+
+        const appendCriteriaPreset = (opt, target = 'create') => {
+          if (target === 'create') {
+            const cur = newOpeningForm.value.description || '';
+            newOpeningForm.value.description = cur ? `${cur.trim()}, ${opt}` : opt;
+          } else {
+            const cur = editOpeningForm.value.description || '';
+            editOpeningForm.value.description = cur ? `${cur.trim()}, ${opt}` : opt;
+          }
+        };
+
+        // Edit Job Opening Modal State & Handlers
+        const showEditOpeningModal = ref(false);
+        const isSavingOpeningEdit = ref(false);
+        const editOpeningForm = ref({
+          name: '',
+          job_id: '',
+          job_title: '',
+          designation: '',
+          description: '',
+          selected_recruiters: []
+        });
+
+        const openEditOpeningModal = (op) => {
+          const jid = op.job_id || 'J001';
+          const assigned = adminRecruiters.value
+            .filter(r => (r.assigned_job_id || '').toUpperCase().includes(jid.toUpperCase()))
+            .map(r => r.user_email);
+          editOpeningForm.value = {
+            name: op.name,
+            job_id: jid,
+            job_title: op.job_title,
+            designation: op.designation || 'Analyst',
+            description: op.description || '',
+            selected_recruiters: assigned
+          };
+          showEditOpeningModal.value = true;
+          nextTick(() => lucide.createIcons());
+        };
+
+        const submitEditJobOpening = async () => {
+          isSavingOpeningEdit.value = true;
+          try {
+            const params = new URLSearchParams({
+              opening_name: editOpeningForm.value.name,
+              job_title: editOpeningForm.value.job_title,
+              description: editOpeningForm.value.description,
+              recruiters: editOpeningForm.value.selected_recruiters.join(',')
+            });
+            const res = await fetch(`/api/method/face_attendance.api.update_job_opening_details?${params.toString()}`);
+            const json = await res.json();
+            if (json.message?.success) {
+              showToast('Criteria Updated', `Successfully updated ${editOpeningForm.value.job_id} criteria & recruiter assignments!`, 'success');
+              showEditOpeningModal.value = false;
+              fetchAllOpenings();
+              fetchJobOpenings();
+              fetchAdminPanelData();
+            } else {
+              showToast('Update Failed', json.message?.message || 'Could not update opening.', 'error');
+            }
+          } catch(e) {
+            showToast('Error', e.message, 'error');
+          } finally {
+            isSavingOpeningEdit.value = false;
+          }
+        };
+
         return {
+          selectedJobIds,
+          toggleJobSelection,
+          criteriaPresetOptions,
+          appendCriteriaPreset,
+          showEditOpeningModal,
+          isSavingOpeningEdit,
+          editOpeningForm,
+          openEditOpeningModal,
+          submitEditJobOpening,
+          filterSalaryMin,
+          filterSalaryMax,
+          setScopeJobFilter,
+          visiblePages,
+          draggedCard,
+          draggedSourceCol,
+          dragOverColId,
+          onDragStartCard,
+          onDragEndCard,
+          onDragOverCol,
+          onDragLeaveCol,
+          onDropKanbanCard,
+          unlockCandidatesForJob,
+          unlockSingleCandidate,
+          openDiscoveryView,
+          getAvailableOpeningsForModal,
           kanbanTheme,
           dashKpis,
           dashJobDist,
