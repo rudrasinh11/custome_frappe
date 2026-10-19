@@ -842,6 +842,15 @@ def extract_unique_tags(tags_str: str) -> list[str]:
     return result
 
 @frappe.whitelist(allow_guest=True)
+def normalize_job_id(text: str) -> str:
+    """Consistently normalizes job codes like j001, j0002, J003 into J001, J002, J003."""
+    if not text:
+        return ""
+    m = re.search(r'[jJ]0*(\d+)', str(text))
+    if m:
+        return f"J{int(m.group(1)):03d}"
+    return str(text).strip().upper()
+
 def get_active_job_openings() -> dict:
     """
     Fetch all active/open Job Openings from Frappe Desk (DocType 'Job Opening').
@@ -856,6 +865,18 @@ def get_active_job_openings() -> dict:
     except Exception as e:
         frappe.log_error(f"Error fetching Job Openings: {str(e)}")
         openings = []
+
+    curr_user = getattr(getattr(frappe, "session", None), "user", "Administrator") or "Administrator"
+    if not is_admin_session():
+        rec_rec = frappe.db.sql("SELECT assigned_job_id FROM `tabRecruiter Assignment` WHERE user_email = %s AND is_active = 1", (curr_user,), as_dict=True)
+        my_jid = rec_rec[0]["assigned_job_id"] if rec_rec else ("J001" if "j001" in curr_user.lower() else "J002")
+        my_jobs = [normalize_job_id(j.strip()) for j in my_jid.split(",") if j.strip()]
+        filtered = []
+        for op in openings:
+            op_norm = normalize_job_id(op.get("job_title") or op.get("name") or "")
+            if op_norm in my_jobs or any(j in (op.get("job_title") or "").upper() for j in my_jobs):
+                filtered.append(op)
+        openings = filtered
 
     job_counts = {"J001": 0, "J002": 0}
     try:
@@ -971,18 +992,31 @@ def create_custom_job_opening(job_title: str, job_id: str = None, designation: s
         return {"success": False, "message": f"Error creating Job Opening: {str(e)}"}
 
 @frappe.whitelist(allow_guest=True)
-def get_all_job_openings() -> dict:
+def get_all_job_openings(recruiter_email: str = None) -> dict:
     """
     Fetch all Job Openings (both Open & Closed) with web publish status and candidate counts.
     """
     try:
         openings = frappe.get_all(
             "Job Opening",
-            fields=["name", "job_title", "designation", "status", "company", "publish", "department"]
+            fields=["name", "job_title", "designation", "status", "company", "publish", "department", "description", "location", "vacancies", "lower_range", "upper_range", "currency", "salary_per"]
         )
     except Exception as e:
         frappe.log_error(f"Error fetching Job Openings: {str(e)}")
         openings = []
+
+    effective_email = (recruiter_email or "").strip() or (getattr(getattr(frappe, "session", None), "user", "Administrator") or "Administrator")
+    is_admin = is_admin_session() and not recruiter_email
+    if not is_admin:
+        rec_rec = frappe.db.sql("SELECT assigned_job_id FROM `tabRecruiter Assignment` WHERE user_email = %s AND is_active = 1", (effective_email,), as_dict=True)
+        my_jid = rec_rec[0]["assigned_job_id"] if rec_rec else ("J001" if "j001" in effective_email.lower() else "J002")
+        my_jobs = [normalize_job_id(j.strip()) for j in my_jid.split(",") if j.strip()]
+        filtered = []
+        for op in openings:
+            op_norm = normalize_job_id(op.get("job_title") or op.get("name") or "")
+            if op_norm in my_jobs or any(j in (op.get("job_title") or "").upper() for j in my_jobs):
+                filtered.append(op)
+        openings = filtered
 
     # Count candidates assigned per job opening
     counts = {}
@@ -1023,6 +1057,13 @@ def get_all_job_openings() -> dict:
             "publish": op.get("publish") or 0,
             "company": op.get("company") or "frappe",
             "department": op.get("department") or "",
+            "description": op.get("description") or "",
+            "location": op.get("location") or "",
+            "vacancies": op.get("vacancies") or 0,
+            "lower_range": op.get("lower_range") or 0,
+            "upper_range": op.get("upper_range") or 0,
+            "currency": op.get("currency") or "INR",
+            "salary_per": op.get("salary_per") or "Month",
             "candidate_count": counts.get(job_id, 0)
         })
 
@@ -1034,7 +1075,11 @@ def toggle_job_opening_status(opening_name: str, new_status: str) -> dict:
     """
     Toggle a Job Opening between 'Open' and 'Closed'.
     When Closed, it is hidden from the candidate assignment dropdown.
+    Strictly restricted to Administrator only - Recruiters cannot close jobs.
     """
+    if not is_admin_session():
+        return {"success": False, "message": "Permission Denied: Only Administrators can close or re-open Job Openings."}
+
     if not opening_name or not new_status:
         return {"success": False, "message": "Opening name and status required"}
 
@@ -1043,13 +1088,18 @@ def toggle_job_opening_status(opening_name: str, new_status: str) -> dict:
 
     clean_status = "Closed" if new_status.lower() == "closed" else "Open"
     frappe.db.set_value("Job Opening", opening_name, "status", clean_status)
+    if clean_status == "Closed":
+        frappe.db.set_value("Job Opening", opening_name, "publish", 0)
+    else:
+        frappe.db.set_value("Job Opening", opening_name, "publish", 1)
     frappe.db.commit()
 
     return {
         "success": True,
         "message": f"Job Opening '{opening_name}' is now {clean_status}.",
         "name": opening_name,
-        "status": clean_status
+        "status": clean_status,
+        "publish": 1 if clean_status == "Open" else 0
     }
 
 
@@ -1232,10 +1282,35 @@ def search_job_candidates(
     page = int(page or 1)
     page_size = int(page_size or 6)
     
-    # Active Recruiter Job ID context (J001 or J002 or All)
-    norm_recruiter_job = (recruiter_job_id or "").strip().upper() if recruiter_job_id and recruiter_job_id.lower() != "all" else None
-    if norm_recruiter_job == "J0002":
-        norm_recruiter_job = "J002"
+    # Enforce strict Recruiter Job Assignment
+    curr_user = getattr(getattr(frappe, "session", None), "user", "Administrator") or "Administrator"
+    is_admin = is_admin_session()
+    
+    if not is_admin:
+        # Strictly look up recruiter's assigned Job IDs from DB
+        rec_rec = frappe.db.sql("SELECT assigned_job_id FROM `tabRecruiter Assignment` WHERE user_email = %s AND is_active = 1", (curr_user,), as_dict=True)
+        if rec_rec:
+            raw_jobs = rec_rec[0]["assigned_job_id"] or "J001"
+        else:
+            u_str = curr_user.lower()
+            raw_jobs = "J001, J002" if "j001" in u_str else "J001"
+        my_assigned_jobs = [j.strip().upper() for j in raw_jobs.split(",") if j.strip()]
+        
+        # If recruiter requested a specific job from their assigned list:
+        req_job = (recruiter_job_id or filter_job_id or "").strip().upper()
+        if req_job and req_job in my_assigned_jobs:
+            active_target_jobs = [req_job]
+            norm_recruiter_job = req_job
+        else:
+            active_target_jobs = my_assigned_jobs
+            norm_recruiter_job = my_assigned_jobs[0] if my_assigned_jobs else "J001"
+    else:
+        # Admin can view All or filter by any specific Job ID
+        my_assigned_jobs = []
+        norm_recruiter_job = (recruiter_job_id or filter_job_id or "").strip().upper() if (recruiter_job_id or filter_job_id) and (recruiter_job_id or filter_job_id).lower() != "all" else None
+        if norm_recruiter_job == "J0002":
+            norm_recruiter_job = "J002"
+        active_target_jobs = [norm_recruiter_job] if norm_recruiter_job else []
         
     # Fetch all candidate records from database
     all_candidates = frappe.get_all(
@@ -1334,19 +1409,23 @@ def search_job_candidates(
                 "status": "Screening"
             }
             
-        # Determine locked state for the current recruiter's active Job ID
+        # Determine locked state for the current recruiter active Job IDs
         is_locked_for_my_job = False
         my_job_lock = None
-        
-        if norm_recruiter_job:
+
+        if not is_admin:
+            for j in active_target_jobs:
+                if j in cand_locks:
+                    is_locked_for_my_job = True
+                    my_job_lock = cand_locks[j]
+                    break
+        elif norm_recruiter_job and norm_recruiter_job != "ALL":
             if norm_recruiter_job in cand_locks:
                 is_locked_for_my_job = True
                 my_job_lock = cand_locks[norm_recruiter_job]
         else:
-            if cand_locks:
-                is_locked_for_my_job = True
-                my_job_lock = list(cand_locks.values())[0]
-
+            is_locked_for_my_job = False
+            my_job_lock = None
         # Candidate Name Filter
         if filter_name and filter_name.strip():
             if filter_name.strip().lower() not in (c.get("candidate_name") or "").lower():
@@ -1372,16 +1451,66 @@ def search_job_candidates(
         # Candidate City / Location Filter
         if filter_location and filter_location.strip():
             if filter_location.strip().lower() not in c_loc:
-                continue
+                continue        # Parse candidate salary data from hr_notes and expected_ctc
+        c_notes = c.get("hr_notes") or ""
+        p_sal = ""
+        m_sal = re.search(r'Salary:\s*([^|]+)', c_notes, re.I)
+        if m_sal:
+            p_sal = m_sal.group(1).strip()
 
-        # Candidate Expected Salary Filter
-        if filter_expected_salary is not None and filter_expected_salary != "":
-            try:
-                max_sal_val = float(re.sub(r'[^0-9.]', '', str(filter_expected_salary)))
-                if max_sal_val > 0 and c_ctc > max_sal_val:
-                    continue
-            except Exception:
-                pass
+        cand_mo = 0.0
+        cand_ann = float(c.get("expected_ctc") or 0)
+        
+        sal_digits = re.findall(r'\d+', p_sal.replace(',', '')) if (p_sal and p_sal != "N/A" and "not disclosed" not in p_sal.lower()) else []
+        if sal_digits:
+            p_val = float(''.join(sal_digits))
+            if "/mo" in p_sal.lower() or "month" in p_sal.lower() or p_val <= 60000:
+                cand_mo = p_val
+                if cand_ann <= 0 or cand_ann <= 60000:
+                    cand_ann = cand_mo * 12
+            else:
+                cand_ann = p_val
+                cand_mo = cand_ann / 12
+        elif cand_ann > 0:
+            if cand_ann > 60000:
+                cand_mo = cand_ann / 12
+            else:
+                cand_mo = cand_ann
+                cand_ann = cand_mo * 12
+
+        # Format clean display string
+        if cand_mo > 0:
+            sal_str = f"₹{int(cand_mo):,}/month"
+        elif cand_ann > 0:
+            sal_str = f"₹{int(cand_ann / 12):,}/month"
+        else:
+            sal_str = "Not Disclosed"
+
+        # Candidate Expected Salary Filter (Intelligent Monthly / Annual Support)
+        sal_match_bonus = 0
+        if filter_expected_salary is not None and str(filter_expected_salary).strip() != "":
+            raw_filt = str(filter_expected_salary).strip().lower()
+            clean_num_str = re.sub(r'[^0-9.]', '', raw_filt)
+            if clean_num_str:
+                input_sal = float(clean_num_str)
+                if input_sal > 0:
+                    # STRICT RULE: Candidates with no written salary (0 / Not Disclosed) MUST BE EXCLUDED!
+                    if cand_mo <= 0 and cand_ann <= 0:
+                        continue
+                    
+                    if input_sal <= 80000 or "/mo" in raw_filt or "month" in raw_filt:
+                        # Monthly comparison (e.g. 12000)
+                        # Exclude candidates with salary significantly above budget
+                        if cand_mo > (input_sal * 1.10):
+                            continue
+                        if abs(cand_mo - input_sal) <= 500 or cand_mo == input_sal:
+                            sal_match_bonus = 25
+                    else:
+                        # Annual comparison (e.g. 300000)
+                        if cand_ann > (input_sal * 1.10):
+                            continue
+                        if abs(cand_ann - input_sal) <= 15000:
+                            sal_match_bonus = 25
 
         # Candidate Domain / Industry Filter
         active_domain = filter_domain or domain
@@ -1567,24 +1696,8 @@ def search_job_candidates(
         )
         cand_resume = cand_resume if is_external_doc else ""
         is_uploaded_resume = is_external_doc
-
-        sal_str = ""
-        is_valid_sal = bool(p_sal and p_sal != "N/A" and p_sal != "Not Disclosed" and not re.search(r'\b[6-9]\d{9}\b', p_sal))
-        if is_valid_sal:
-            sal_digits = re.findall(r'\d+', p_sal.replace(',', ''))
-            if sal_digits:
-                val = float(''.join(sal_digits))
-                if val < 3000 or val > 5000000:
-                    is_valid_sal = False
-            else:
-                is_valid_sal = False
-
-        if is_valid_sal:
-            clean_s = re.sub(r'^[₹rRs\.\s]+', '', p_sal).strip()
-            sal_str = f"₹{clean_s}" if clean_s else ""
-        elif c_ctc > 0:
-            monthly = int(c_ctc / 12)
-            sal_str = f"₹{monthly:,} / mo" 
+        # sal_str and cand_mo are calculated cleanly above
+        pass 
 
         # Candidate display status
         cand_card_status = my_job_lock.get("status", "Screening") if is_locked_for_my_job else (c.get("status") or "New")
@@ -1612,6 +1725,8 @@ def search_job_candidates(
             "industry": p_ind if p_ind != "N/A" else "",
             "assets": p_assets if p_assets != "N/A" else "",
             "salary_display": sal_str,
+            "salary_monthly": cand_mo,
+            "salary_annual": cand_ann,
             "profile_tags": ", ".join(extract_unique_tags(c.get("profile_tags") or "")),
             "tags_list": extract_unique_tags(c.get("profile_tags") or ""),
             "relevance_score": final_score,
@@ -1619,18 +1734,18 @@ def search_job_candidates(
             "tier_icon": tier_icon,
             "hit_count": hit_count,
             "desk_url": f"/app/job-candidate/{c['name']}",
-            # Job ID Scoped Concurrency Fields
-            "job_locks": cand_locks,
-            "selected_job_id": my_job_lock.get("job_id") if my_job_lock else (c.get("selected_job_id") or ""),
+            # Job ID Scoped Concurrency Fields - STRICT RECRUITER PRIVACY ISOLATION
+            "job_locks": ({k: v for k, v in cand_locks.items() if k in my_assigned_jobs} if not is_admin else cand_locks),
+            "selected_job_id": my_job_lock.get("job_id") if my_job_lock else ("" if not is_admin else (c.get("selected_job_id") or "")),
             "is_locked_for_my_job": is_locked_for_my_job,
             "my_job_lock": my_job_lock,
-            "selection_status": "Selected" if is_locked_for_my_job else "Available",
-            "selected_by": my_job_lock.get("selected_by") if my_job_lock else (c.get("selected_by") or ""),
-            "selected_location": my_job_lock.get("target_location") if my_job_lock else (c.get("selected_location") or ""),
-            "selected_role": my_job_lock.get("role") if my_job_lock else (c.get("selected_role") or ""),
-            "selected_group": my_job_lock.get("group_name") if my_job_lock else (c.get("selected_group") or ""),
-            "selected_by_location": my_job_lock.get("selected_by_location") if my_job_lock else (c.get("selected_by_location") or ""),
-            "selected_at": my_job_lock.get("selected_at") if my_job_lock else str(c.get("selected_at") or "")
+            "selection_status": "Selected" if is_locked_for_my_job else ("Available" if not is_admin else (c.get("selection_status") or "Available")),
+            "selected_by": my_job_lock.get("selected_by") if my_job_lock else ("" if not is_admin else (c.get("selected_by") or "")),
+            "selected_location": my_job_lock.get("target_location") if my_job_lock else ("" if not is_admin else (c.get("selected_location") or "")),
+            "selected_role": my_job_lock.get("role") if my_job_lock else ("" if not is_admin else (c.get("selected_role") or "")),
+            "selected_group": my_job_lock.get("group_name") if my_job_lock else ("" if not is_admin else (c.get("selected_group") or "")),
+            "selected_by_location": my_job_lock.get("selected_by_location") if my_job_lock else ("" if not is_admin else (c.get("selected_by_location") or "")),
+            "selected_at": my_job_lock.get("selected_at") if my_job_lock else ("" if not is_admin else str(c.get("selected_at") or ""))
         })
         
     if sort_by == "relevance":
@@ -1659,6 +1774,33 @@ def search_job_candidates(
         selected_count = sum(1 for c in all_candidates if (c.get("job_locks") and c.get("job_locks") != "{}") or (c.get("selection_status") or "").strip().lower() == "selected")
     available_count = len(all_candidates) - selected_count
     
+    # Fetch all active open job openings for dynamic badge rendering
+    active_openings = []
+    try:
+        raw_openings = frappe.get_all(
+            "Job Opening",
+            filters={"status": "Open"},
+            fields=["name", "job_title", "designation", "status"]
+        )
+        for op in raw_openings:
+            title = op.get("job_title") or op.get("name")
+            job_id = normalize_job_id(title) or op.get("name")
+            if not is_admin and norm_recruiter_job:
+                if job_id != norm_recruiter_job:
+                    continue
+            active_openings.append({
+                "name": op.get("name"),
+                "job_id": job_id,
+                "job_title": title,
+                "designation": op.get("designation") or "Analyst",
+                "status": "Open"
+            })
+    except Exception:
+        active_openings = []
+
+    if not is_admin and norm_recruiter_job:
+        job_lock_counts = {norm_recruiter_job: job_lock_counts.get(norm_recruiter_job, 0)}
+
     return {
         "success": True,
         "candidates": paginated_results,
@@ -1671,6 +1813,7 @@ def search_job_candidates(
         "available_candidates_count": available_count,
         "recruiter_job_id": norm_recruiter_job or "All",
         "job_lock_counts": job_lock_counts,
+        "active_openings": active_openings,
         "aggregations": {
             "tags": sorted([{"tag": k, "count": v} for k, v in tag_counter.items()], key=lambda x: x["count"], reverse=True)[:20],
             "locations": sorted([{"location": k, "count": v} for k, v in location_counter.items()], key=lambda x: x["count"], reverse=True),
@@ -1725,10 +1868,23 @@ def claim_candidate_atomic(
     cand_city = cand_row.get("current_location") or "Patna"
     cand_role = cand_row.get("position_applied") or "Analyst"
 
+    curr_user = getattr(getattr(frappe, "session", None), "user", "Administrator") or "Administrator"
+    is_admin = is_admin_session()
+
     clean_target_location = (location or cand_city).strip()
     clean_role = (role or cand_role).strip()
-    clean_job_id = (job_id or "J001").strip().upper()
-    if clean_job_id == "J0002": clean_job_id = "J002"
+    
+    if not is_admin:
+        # Recruiter is strictly locked to their assigned Job ID
+        rec_rec = frappe.db.sql("SELECT assigned_job_id, recruiter_name FROM `tabRecruiter Assignment` WHERE user_email = %s AND is_active = 1", (curr_user,), as_dict=True)
+        if rec_rec:
+            clean_job_id = rec_rec[0]["assigned_job_id"]
+            clean_recruiter_name = rec_rec[0]["recruiter_name"]
+        else:
+            clean_job_id = "J001" if "j001" in curr_user.lower() else "J002"
+    else:
+        clean_job_id = (job_id or "J001").strip().upper()
+        if clean_job_id == "J0002": clean_job_id = "J002"
 
     clean_recruiter_name = (recruiter_id or getattr(frappe.session, 'user', None) or "Rudra Radadiya").strip()
     if not clean_recruiter_name or clean_recruiter_name in ["Administrator", "Guest"]:
@@ -1737,14 +1893,15 @@ def claim_candidate_atomic(
     clean_recruiter_loc = (recruiter_location or "Corporate HQ (Patna)").strip()
     clean_group = (group_name or f"{clean_job_id} - {clean_target_location} {clean_role} Drive").strip()
     
+    if "j001" in clean_recruiter_name.lower():
+        clean_recruiter_name = "Recruiter J001 (Pooja)"
+    elif "j002" in clean_recruiter_name.lower():
+        clean_recruiter_name = "Recruiter J002 (Rahul)"
+
     if clean_recruiter_role and clean_recruiter_role.lower() not in clean_recruiter_name.lower():
         full_recruiter_display = f"{clean_recruiter_name} ({clean_recruiter_role})"
     else:
         full_recruiter_display = clean_recruiter_name
-
-    clean_target_location = location.strip()
-    clean_role = (role or "").strip()
-    clean_group = (group_name or f"{clean_job_id} - {clean_target_location} {clean_role or 'Hiring'}").strip()
 
     try:
         # Acquire row lock within database transaction
@@ -1963,9 +2120,21 @@ def get_applicant_kanban_board(job_id: str = None) -> dict:
     Columns: Open, Screening / Replied, Shortlisted, Hold, Rejected, Accepted.
     Populates cards from both Frappe Job Applicant and Job Candidate with Job ID tags.
     """
-    target_job_id = (job_id or "").strip().upper() if job_id and job_id.lower() != "all" else None
-    if target_job_id == "J0002":
-        target_job_id = "J002"
+    curr_user = getattr(getattr(frappe, "session", None), "user", "Administrator") or "Administrator"
+    is_admin = is_admin_session()
+
+    if not is_admin:
+        # Recruiter strictly only gets their assigned Job ID
+        rec_rec = frappe.db.sql("SELECT assigned_job_id FROM `tabRecruiter Assignment` WHERE user_email = %s AND is_active = 1", (curr_user,), as_dict=True)
+        if rec_rec:
+            target_job_id = rec_rec[0]["assigned_job_id"]
+        else:
+            u_str = curr_user.lower()
+            target_job_id = "J001" if "j001" in u_str else "J002"
+    else:
+        target_job_id = (job_id or "").strip().upper() if job_id and job_id.lower() != "all" else None
+        if target_job_id == "J0002":
+            target_job_id = "J002"
         
     columns = [
         {"id": "Open", "title": "Open", "color": "#64748b", "cards": []},
@@ -1981,7 +2150,8 @@ def get_applicant_kanban_board(job_id: str = None) -> dict:
     candidates = frappe.db.sql("""
         SELECT name, candidate_name, email, phone, position_applied, current_location, 
                experience_years, expected_ctc, selection_status, selected_by, selected_group,
-               selected_role, selected_location, selected_by_location, job_locks, selected_job_id, status
+               selected_role, selected_location, selected_by_location, job_locks, selected_job_id, status,
+               profile_tags, hr_notes, resume, source, notice_period
         FROM `tabJob Candidate`
         WHERE selection_status = 'Selected' OR (job_locks IS NOT NULL AND job_locks != '' AND job_locks != '{}')
     """, as_dict=True)
@@ -2023,6 +2193,7 @@ def get_applicant_kanban_board(job_id: str = None) -> dict:
 
             target_col["cards"].append({
                 "id": cand["name"],
+                "name": cand["name"],
                 "card_key": card_key,
                 "candidate_name": cand["candidate_name"],
                 "job_id": norm_jid,
@@ -2036,6 +2207,13 @@ def get_applicant_kanban_board(job_id: str = None) -> dict:
                 "status": l_data.get("status") or "Screening",
                 "phone": cand.get("phone") or "",
                 "email": cand.get("email") or "",
+                "profile_tags": cand.get("profile_tags") or "",
+                "tags_list": extract_unique_tags(cand.get("profile_tags") or ""),
+                "hr_notes": cand.get("hr_notes") or "",
+                "resume": cand.get("resume") or "",
+                "source": cand.get("source") or "Job Portal",
+                "experience_years": cand.get("experience_years") or 0,
+                "expected_ctc": cand.get("expected_ctc") or 0,
                 "applicant_id": l_data.get("job_applicant_id") or ""
             })
 
@@ -3051,3 +3229,778 @@ def quick_add_job_applicant(applicant_name: str, email_id: str, job_title: str =
     except Exception as e:
         frappe.log_error(f"Error creating Job Applicant: {str(e)}", "quick_add_job_applicant")
         return {"success": False, "message": str(e)}
+
+
+# ==============================================================================
+# HIERARCHICAL WORK DELEGATION & COMPANY WORK ORDER APIS
+# Structure: 1 Director, 2 HR Leads, 6 Managers, 12 Employees (2 per Manager)
+# ==============================================================================
+
+@frappe.whitelist(allow_guest=True)
+def get_company_hierarchy() -> dict:
+    """
+    Returns the full 21-person organizational hierarchy:
+    - 1 Director
+    - 2 HR Leads
+    - 6 Managers with their 2 assigned direct reports
+    - Live task counts per person
+    """
+    try:
+        employees = frappe.db.sql("""
+            SELECT 
+                name, employee_name, first_name, last_name, 
+                designation, department, reports_to, gender, 
+                company_email, cell_number, status
+            FROM `tabEmployee`
+            WHERE status = 'Active' AND company = 'frappe'
+            ORDER BY creation ASC
+        """, as_dict=True)
+        
+        # Calculate task counts for each employee
+        task_counts = frappe.db.sql("""
+            SELECT 
+                assigned_to_id,
+                COUNT(*) as total_tasks,
+                SUM(CASE WHEN status != 'Completed' THEN 1 ELSE 0 END) as active_tasks,
+                SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed_tasks
+            FROM `tabCompany Work Task`
+            GROUP BY assigned_to_id
+        """, as_dict=True)
+        task_map = {t["assigned_to_id"]: t for t in task_counts}
+
+        for emp in employees:
+            t_data = task_map.get(emp["name"], {"total_tasks": 0, "active_tasks": 0, "completed_tasks": 0})
+            emp["total_tasks"] = t_data["total_tasks"]
+            emp["active_tasks"] = t_data["active_tasks"]
+            emp["completed_tasks"] = t_data["completed_tasks"]
+
+        # Find Director
+        director = next((e for e in employees if "Director" in (e.get("designation") or "") and not e.get("reports_to")), None)
+        if not director:
+            director = next((e for e in employees if "Singhania" in e.get("employee_name", "")), employees[0] if employees else None)
+
+        # HR Leads (Report to Director or in HR Department)
+        hr_leads = [
+            e for e in employees 
+            if e != director and "Human Resources" in (e.get("department") or "")
+        ]
+
+        # 6 Managers (Have direct reports or designation includes 'Manager' / 'Head' / 'Lead' outside HR)
+        all_reports_to_set = set(e.get("reports_to") for e in employees if e.get("reports_to"))
+        
+        managers = []
+        for e in employees:
+            if e != director and e not in hr_leads:
+                # If employee has people reporting to them or has Manager in designation
+                if e["name"] in all_reports_to_set or "Manager" in (e.get("designation") or "") or "Head" in (e.get("designation") or "") or "Lead" in (e.get("designation") or ""):
+                    direct_reports = [r for r in employees if r.get("reports_to") == e["name"]]
+                    e_copy = dict(e)
+                    e_copy["direct_reports"] = direct_reports
+                    e_copy["subordinates_count"] = len(direct_reports)
+                    managers.append(e_copy)
+
+        # If there are managers without direct reports or to guarantee exactly 6
+        managers = managers[:6]
+
+        # Build list of 12 employees (the direct reports of the 6 managers)
+        staff_employees = []
+        for m in managers:
+            staff_employees.extend(m.get("direct_reports", []))
+
+        return {
+            "success": True,
+            "director": director,
+            "hr_leads": hr_leads,
+            "managers": managers,
+            "staff_employees": staff_employees,
+            "total_personnel": len(employees),
+            "all_employees": employees
+        }
+    except Exception as e:
+        frappe.log_error(f"Error in get_company_hierarchy: {str(e)}", "get_company_hierarchy")
+        return {"success": False, "message": str(e)}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_hierarchy_assignees(assigned_by_id: str) -> dict:
+    """
+    STRICT HIERARCHY DELEGATION ENGINE:
+    - Director: Can assign to all 20 personnel.
+    - HR: Can assign to all 6 Managers and direct staff.
+    - Manager: STRICTLY allowed to assign to their 2 direct report employees ONLY.
+    - Employee: Cannot assign work upward (can only update/complete tasks).
+    """
+    if not assigned_by_id:
+        return {"success": False, "message": "Assigner employee ID is required."}
+
+    user_emp = frappe.db.get_value(
+        "Employee", assigned_by_id, 
+        ["name", "employee_name", "designation", "department", "reports_to"], 
+        as_dict=True
+    )
+    if not user_emp:
+        return {"success": False, "message": f"Employee {assigned_by_id} not found."}
+
+    desig = (user_emp.get("designation") or "").lower()
+    dept = (user_emp.get("department") or "").lower()
+    reports_to = user_emp.get("reports_to")
+
+    # 1. Director -> Can assign to anyone in the company
+    if "managing director" in desig or ("director" in desig and not reports_to) or "singhania" in user_emp.get("employee_name", "").lower():
+        assignees = frappe.db.sql("""
+            SELECT name, employee_name, designation, department, 'Direct Subordinate' as relation
+            FROM `tabEmployee`
+            WHERE name != %s AND status = 'Active' AND company = 'frappe'
+            ORDER BY department, designation
+        """, (assigned_by_id,), as_dict=True)
+        return {
+            "success": True, 
+            "role_level": "Director",
+            "can_assign": True,
+            "permission_note": "Director has universal company delegation authority across all roles.",
+            "assignees": assignees
+        }
+
+    # 2. HR -> Can assign to all managers & staff for company operations
+    if "human resources" in dept or "hr" in desig:
+        assignees = frappe.db.sql("""
+            SELECT name, employee_name, designation, department, 'Department Lead / Staff' as relation
+            FROM `tabEmployee`
+            WHERE name != %s AND status = 'Active' AND company = 'frappe'
+            ORDER BY department, designation
+        """, (assigned_by_id,), as_dict=True)
+        return {
+            "success": True, 
+            "role_level": "HR",
+            "can_assign": True,
+            "permission_note": "HR can delegate cross-departmental operations and hiring requisitions to Managers and personnel.",
+            "assignees": assignees
+        }
+
+    # 3. Manager -> STRICTLY their 2 direct report employees
+    direct_reports = frappe.db.sql("""
+        SELECT name, employee_name, designation, department, 'Direct Team Report' as relation
+        FROM `tabEmployee`
+        WHERE reports_to = %s AND status = 'Active' AND company = 'frappe'
+        ORDER BY employee_name
+    """, (assigned_by_id,), as_dict=True)
+
+    if direct_reports:
+        return {
+            "success": True,
+            "role_level": "Manager",
+            "can_assign": True,
+            "permission_note": f"Manager delegation strictly scoped to your {len(direct_reports)} direct report team members.",
+            "assignees": direct_reports
+        }
+
+    # 4. Regular Employee -> Cannot assign work upward
+    return {
+        "success": True,
+        "role_level": "Employee",
+        "can_assign": False,
+        "permission_note": "Employees cannot assign work upward. You can update progress, submit deliverables, and complete your assigned tasks.",
+        "assignees": []
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def create_company_work_task(
+    title: str, 
+    assigned_by_id: str, 
+    assigned_to_id: str, 
+    description: str = "",
+    priority: str = "Medium", 
+    due_date: str = None,
+    department: str = None
+) -> dict:
+    """
+    Creates a new task in tabCompany Work Task enforcing hierarchy rules.
+    """
+    if not title or not assigned_by_id or not assigned_to_id:
+        return {"success": False, "message": "Title, Assigned By, and Assigned To are required."}
+
+    # Hierarchy Permission Check
+    assignee_check = get_hierarchy_assignees(assigned_by_id)
+    if not assignee_check.get("can_assign"):
+        return {"success": False, "message": "Hierarchy Restriction: Regular staff/employees cannot delegate tasks."}
+
+    allowed_ids = [a["name"] for a in assignee_check.get("assignees", [])]
+    if assigned_to_id not in allowed_ids:
+        return {
+            "success": False, 
+            "message": f"Hierarchy Violation: {assigned_by_id} is not authorized to delegate work to {assigned_to_id} according to company reporting lines."
+        }
+
+    assigner = frappe.db.get_value("Employee", assigned_by_id, ["employee_name", "designation"], as_dict=True) or {}
+    target = frappe.db.get_value("Employee", assigned_to_id, ["employee_name", "designation", "department"], as_dict=True) or {}
+
+    task_name = f"TASK-{frappe.utils.now_datetime().strftime('%Y')}-{frappe.utils.random_string(4).upper()}"
+
+    frappe.db.sql("""
+        INSERT INTO `tabCompany Work Task` 
+        (`name`, `title`, `description`, `department`, `priority`, `status`, 
+         `assigned_by_id`, `assigned_by_name`, `assigned_by_role`, 
+         `assigned_to_id`, `assigned_to_name`, `assigned_to_role`, `assigned_to_dept`, 
+         `due_date`, `completion_notes`)
+        VALUES (%s, %s, %s, %s, %s, 'To Do', %s, %s, %s, %s, %s, %s, %s, %s, '')
+    """, (
+        task_name, title.strip(), (description or "").strip(),
+        department or target.get("department") or "General",
+        priority or "Medium",
+        assigned_by_id, assigner.get("employee_name", "Manager"), assigner.get("designation", "Lead"),
+        assigned_to_id, target.get("employee_name", "Employee"), target.get("designation", "Staff"), target.get("department", "General"),
+        due_date or frappe.utils.add_days(frappe.utils.nowdate(), 7)
+    ))
+    frappe.db.commit()
+
+    return {
+        "success": True, 
+        "task_id": task_name,
+        "message": f"Successfully assigned task '{title}' to {target.get('employee_name')}!"
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def update_company_work_task_status(task_id: str, new_status: str, completion_notes: str = None) -> dict:
+    """
+    Lifecycle progression: 'To Do' -> 'In Progress' -> 'Under Review' -> 'Completed'.
+    """
+    if not task_id or not new_status:
+        return {"success": False, "message": "Task ID and new status are required."}
+
+    valid_statuses = ["To Do", "In Progress", "Under Review", "Completed"]
+    if new_status not in valid_statuses:
+        return {"success": False, "message": f"Invalid status: {new_status}"}
+
+    if completion_notes is not None:
+        frappe.db.sql("""
+            UPDATE `tabCompany Work Task`
+            SET status = %s, completion_notes = %s, modified = NOW()
+            WHERE name = %s
+        """, (new_status, completion_notes.strip(), task_id))
+    else:
+        frappe.db.sql("""
+            UPDATE `tabCompany Work Task`
+            SET status = %s, modified = NOW()
+            WHERE name = %s
+        """, (new_status, task_id))
+
+    frappe.db.commit()
+    return {"success": True, "task_id": task_id, "new_status": new_status, "message": f"Task updated to {new_status}"}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_company_work_tasks(
+    filter_status: str = None, 
+    filter_dept: str = None, 
+    filter_assignee: str = None,
+    persona_id: str = None
+) -> dict:
+    """
+    Retrieves company work tasks organized for Kanban board and KPI metrics.
+    """
+    conditions = ["1=1"]
+    values = []
+
+    if filter_status and filter_status != "All":
+        conditions.append("status = %s")
+        values.append(filter_status)
+
+    if filter_dept and filter_dept != "All":
+        conditions.append("department = %s")
+        values.append(filter_dept)
+
+    if filter_assignee and filter_assignee != "All":
+        conditions.append("(assigned_to_id = %s OR assigned_by_id = %s)")
+        values.extend([filter_assignee, filter_assignee])
+
+    where_clause = " AND ".join(conditions)
+
+    tasks = frappe.db.sql(f"""
+        SELECT 
+            name, title, description, department, priority, status,
+            assigned_by_id, assigned_by_name, assigned_by_role,
+            assigned_to_id, assigned_to_name, assigned_to_role, assigned_to_dept,
+            due_date, completion_notes, creation, modified
+        FROM `tabCompany Work Task`
+        WHERE {where_clause}
+        ORDER BY 
+            CASE priority 
+                WHEN 'Urgent' THEN 1 
+                WHEN 'High' THEN 2 
+                WHEN 'Medium' THEN 3 
+                ELSE 4 
+            END ASC,
+            due_date ASC
+    """, values, as_dict=True)
+
+    # Format dates
+    for t in tasks:
+        t["due_date_formatted"] = str(t["due_date"]) if t.get("due_date") else "No Due Date"
+        t["created_formatted"] = str(t["creation"])[:16] if t.get("creation") else ""
+
+    # Group into Kanban Columns
+    columns = [
+        {"id": "To Do", "title": "📋 To Do (Assigned)", "color": "#64748b", "tasks": [t for t in tasks if t["status"] == "To Do"]},
+        {"id": "In Progress", "title": "⏳ In Progress", "color": "#3b82f6", "tasks": [t for t in tasks if t["status"] == "In Progress"]},
+        {"id": "Under Review", "title": "🔍 Under Review", "color": "#f59e0b", "tasks": [t for t in tasks if t["status"] == "Under Review"]},
+        {"id": "Completed", "title": "✅ Completed", "color": "#10b981", "tasks": [t for t in tasks if t["status"] == "Completed"]}
+    ]
+
+    # Metrics
+    kpis = {
+        "total": len(tasks),
+        "todo": len([t for t in tasks if t["status"] == "To Do"]),
+        "in_progress": len([t for t in tasks if t["status"] == "In Progress"]),
+        "under_review": len([t for t in tasks if t["status"] == "Under Review"]),
+        "completed": len([t for t in tasks if t["status"] == "Completed"])
+    }
+
+    return {
+        "success": True,
+        "tasks": tasks,
+        "columns": columns,
+        "kpis": kpis,
+        "total_count": len(tasks)
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_recruiter_account_info() -> dict:
+    """Returns active authenticated recruiter user and scope."""
+    user = getattr(getattr(frappe, "session", None), "user", "Administrator") or "Administrator"
+    u_lower = str(user).lower()
+    active_job = "J001" if "j001" in u_lower else ("J002" if "j002" in u_lower else "All")
+    full_name = frappe.utils.get_fullname(user) if user not in ["Administrator", "Guest"] else user
+    if "j001" in u_lower:
+        full_name = "Recruiter J001 (Pooja)"
+    elif "j002" in u_lower:
+        full_name = "Recruiter J002 (Rahul)"
+    return {
+        "user": user,
+        "full_name": full_name,
+        "active_job_id": active_job,
+        "is_admin": user == "Administrator" or "System Manager" in frappe.get_roles(user)
+    }
+
+
+# =====================================================================
+# ADMIN PANEL: RECRUITER PROVISIONING & JOB ACCESS CONTROL
+# =====================================================================
+
+def is_admin_session() -> bool:
+    """Helper to check if current logged in session has Administrator privileges."""
+    user = getattr(getattr(frappe, "session", None), "user", "Guest") or "Guest"
+    if user == "Administrator":
+        return True
+    roles = frappe.get_roles(user)
+    return "System Manager" in roles or "Administrator" in roles
+
+@frappe.whitelist(allow_guest=True)
+def get_auth_state() -> dict:
+    """Returns current user session, roles, and assigned job scope."""
+    user = getattr(getattr(frappe, "session", None), "user", "Guest") or "Guest"
+    if not user or user == "Guest":
+        return {
+            "logged_in": False,
+            "user": "Guest",
+            "full_name": "Guest",
+            "is_admin": False,
+            "assigned_job_id": None,
+            "role": "Guest"
+        }
+
+    is_admin = is_admin_session()
+    
+    if is_admin:
+        return {
+            "logged_in": True,
+            "user": user,
+            "full_name": "Administrator (Superuser)",
+            "is_admin": True,
+            "assigned_job_id": "All",
+            "role": "Administrator"
+        }
+
+    # Fetch recruiter profile from tabRecruiter Assignment
+    rec = frappe.db.sql("""
+        SELECT recruiter_name, assigned_job_id, role, is_active
+        FROM `tabRecruiter Assignment`
+        WHERE user_email = %s
+    """, (user,), as_dict=True)
+
+    if rec:
+        raw_jobs = rec[0]["assigned_job_id"] or "J001"
+        jobs_list = [j.strip().upper() for j in raw_jobs.split(",") if j.strip()]
+        return {
+            "logged_in": True,
+            "user": user,
+            "full_name": rec[0]["recruiter_name"],
+            "is_admin": False,
+            "assigned_job_id": raw_jobs,
+            "assigned_jobs": jobs_list,
+            "role": rec[0].get("role") or "Recruiter",
+            "is_active": bool(rec[0].get("is_active"))
+        }
+
+    # Fallback heuristic
+    u_lower = user.lower()
+    fallback_job = "J001" if "j001" in u_lower else ("J002" if "j002" in u_lower else "J001")
+    return {
+        "logged_in": True,
+        "user": user,
+        "full_name": frappe.utils.get_fullname(user) or user,
+        "is_admin": False,
+        "assigned_job_id": fallback_job,
+        "role": "Recruiter",
+        "is_active": True
+    }
+
+@frappe.whitelist(allow_guest=True)
+def get_admin_panel_data() -> dict:
+    """Returns all recruiter assignments, candidate metrics per job, oversight candidates, and designations for Admin oversight."""
+    import re, json
+
+    # Auto-sync all active system users into tabRecruiter Assignment
+    try:
+        active_sys_users = frappe.db.sql("""
+            SELECT name, email, first_name 
+            FROM `tabUser` 
+            WHERE user_type = 'System User' 
+              AND name NOT IN ('Guest', 'Administrator')
+              AND enabled = 1
+        """, as_dict=True)
+        for u in active_sys_users:
+            u_email = u["name"]
+            if not frappe.db.exists("Recruiter Assignment", u_email):
+                u_name = u.get("first_name") or u_email.split('@')[0].capitalize()
+                frappe.db.sql("""
+                    INSERT INTO `tabRecruiter Assignment` (name, user_email, recruiter_name, assigned_job_id, role, is_active, modified_by, owner)
+                    VALUES (%s, %s, %s, 'J001', 'Recruiter', 1, 'Administrator', 'Administrator')
+                """, (u_email, u_email, u_name))
+        frappe.db.commit()
+    except Exception:
+        pass
+
+    # 1. Fetch all recruiters
+    recruiters = frappe.db.sql("""
+        SELECT name, user_email, recruiter_name, assigned_job_id, role, is_active, creation, modified
+        FROM `tabRecruiter Assignment`
+        ORDER BY creation DESC
+    """, as_dict=True)
+
+    recruiter_map = {}
+    for r in recruiters:
+        job = r.get("assigned_job_id") or ""
+        jobs_list = [j.strip().upper() for j in job.split(",") if j.strip()]
+        r["assigned_jobs"] = jobs_list
+        count_cands = 0
+        for j in jobs_list:
+            if j not in recruiter_map:
+                recruiter_map[j] = []
+            rec_display = r.get("recruiter_name") or r.get("user_email")
+            if rec_display not in recruiter_map[j]:
+                recruiter_map[j].append(rec_display)
+            cnt = frappe.db.sql("""
+                SELECT COUNT(*) as cnt
+                FROM `tabJob Candidate`
+                WHERE (job_locks LIKE %s OR selected_job_id = %s)
+            """, (f"%{j}%", j), as_dict=True)
+            count_cands += (cnt[0]["cnt"] if cnt else 0)
+        r["total_candidates"] = count_cands
+
+    # 2. Fetch all job openings
+    openings = frappe.db.sql("""
+        SELECT name, job_title, designation, department, status, vacancies, location
+        FROM `tabJob Opening`
+        ORDER BY creation DESC
+    """, as_dict=True)
+
+    # 3. All candidate profiles
+    all_candidates = frappe.db.sql("""
+        SELECT name, candidate_name, position_applied, selected_job_id, job_locks, selection_status, status, current_location, email, phone 
+        FROM `tabJob Candidate`
+    """, as_dict=True)
+    total_candidates = len(all_candidates)
+    selected_candidates = sum(1 for c in all_candidates if (c.get("selection_status") == 'Selected' or (c.get("job_locks") and c.get("job_locks") != '{}')))
+
+    # 4. Job Opening Profile Analytics
+    job_analytics = []
+    for op in openings:
+        title = op.get("job_title") or ""
+        m = re.search(r'(J\d+)', title, re.IGNORECASE)
+        if m:
+            raw_num = re.search(r'\d+', m.group(1)).group(0)
+            jid = f"J{int(raw_num):03d}"
+        else:
+            jid = op.get("name")
+        
+        desig = (op.get("designation") or "").strip()
+        keywords = [w.lower() for w in re.split(r'[\s|,\-]+', title) if len(w) > 2 and not re.match(r'^j\d+$', w, re.IGNORECASE)]
+        if desig and desig.lower() not in keywords:
+            keywords.append(desig.lower())
+
+        locked_count = 0
+        matched_pool_count = 0
+        sample_active = []
+
+        for c in all_candidates:
+            c_jid = (c.get("selected_job_id") or "").strip().upper()
+            c_locks = c.get("job_locks") or "{}"
+            c_pos = (c.get("position_applied") or "").lower()
+            
+            is_locked = (f'"{jid}"' in c_locks or f"'{jid}'" in c_locks or c_jid == jid)
+            if is_locked:
+                locked_count += 1
+                sample_active.append(c["candidate_name"])
+                continue
+
+            if any(kw in c_pos for kw in keywords if kw not in ["job", "drive", "opening"]):
+                matched_pool_count += 1
+
+        tot_prof = locked_count + matched_pool_count
+        job_analytics.append({
+            "job_id": jid,
+            "name": op.get("name"),
+            "job_title": title,
+            "designation": desig,
+            "status": op.get("status"),
+            "active_pipeline": locked_count,
+            "matching_talent_pool": matched_pool_count,
+            "total_profiles": tot_prof if tot_prof > 0 else total_candidates,
+            "assigned_recruiters": recruiter_map.get(jid, []),
+            "sample_active": sample_active[:3]
+        })
+
+    # Sort job_analytics naturally e.g. J001, J002...
+    job_analytics.sort(key=lambda x: x["job_id"])
+
+    # 5. Oversight Candidates with live locks and statuses
+    locked_cands_raw = frappe.db.sql("""
+        SELECT name, candidate_name, email, phone, current_location, position_applied, 
+               selected_job_id, job_locks, selection_status, status, selected_by, selected_location, modified
+        FROM `tabJob Candidate`
+        WHERE (job_locks IS NOT NULL AND job_locks != '{}' AND job_locks != '')
+           OR (selection_status != 'Available' AND selection_status IS NOT NULL)
+           OR (selected_job_id IS NOT NULL AND selected_job_id != '')
+        ORDER BY modified DESC
+    """, as_dict=True)
+
+    oversight_candidates = []
+    for c in locked_cands_raw:
+        locks = {}
+        if c.get("job_locks"):
+            try:
+                locks = json.loads(c["job_locks"]) if isinstance(c["job_locks"], str) else c["job_locks"]
+            except Exception:
+                locks = {}
+        c["parsed_locks"] = locks
+        oversight_candidates.append(c)
+
+    # 6. Fetch all designations
+    designations_rows = frappe.db.sql("SELECT name FROM `tabDesignation` ORDER BY name ASC", as_dict=True)
+    designations = [d["name"] for d in designations_rows if d.get("name")]
+
+    return {
+        "success": True,
+        "recruiters": recruiters,
+        "job_openings": openings,
+        "job_analytics": job_analytics,
+        "oversight_candidates": oversight_candidates,
+        "designations": designations,
+        "overview": {
+            "total_candidates": total_candidates,
+            "selected_candidates": selected_candidates,
+            "total_recruiters": len(recruiters),
+            "total_openings": len(openings),
+            "active_locks": len(oversight_candidates)
+        }
+    }
+
+@frappe.whitelist(allow_guest=True)
+def add_custom_designation(designation: str) -> dict:
+    """Saves a new custom designation to tabDesignation so it becomes permanently selectable."""
+    designation = (designation or "").strip()
+    if not designation:
+        return {"success": False, "message": "Designation name is required."}
+    if not frappe.db.exists("Designation", designation):
+        try:
+            d_doc = frappe.get_doc({
+                "doctype": "Designation",
+                "designation_name": designation
+            })
+            d_doc.insert(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception:
+            pass
+    return {"success": True, "designation": designation}
+
+@frappe.whitelist(allow_guest=True)
+def create_recruiter_account(recruiter_name: str, email: str, password: str, assigned_job_id: str) -> dict:
+    """Admin-only endpoint to create a recruiter user with assigned Job ID."""
+
+    recruiter_name = (recruiter_name or "").strip()
+    email = (email or "").strip().lower()
+    password = (password or "").strip()
+    # Normalize multi-job assignment e.g. "J001, J002"
+    clean_jobs = [j.strip().upper() for j in (assigned_job_id or "J001").split(",") if j.strip()]
+    assigned_job_id = ", ".join(clean_jobs) if clean_jobs else "J001"
+
+    if not recruiter_name or not email or not password:
+        return {"success": False, "message": "Recruiter Name, Email, and Password are all required."}
+
+    # 1. Check or Create Frappe User
+    user_exists = frappe.db.exists("User", email)
+    if not user_exists:
+        try:
+            user_doc = frappe.get_doc({
+                "doctype": "User",
+                "email": email,
+                "first_name": recruiter_name,
+                "enabled": 1,
+                "send_welcome_email": 0,
+                "user_type": "System User",
+                "roles": [{"role": "HR User"}, {"role": "Desk User"}]
+            })
+            user_doc.insert(ignore_permissions=True)
+        except Exception as e:
+            return {"success": False, "message": f"Failed creating Frappe user: {str(e)}"}
+    else:
+        u_doc = frappe.get_doc("User", email)
+        u_doc.first_name = recruiter_name
+        u_doc.enabled = 1
+        u_doc.save(ignore_permissions=True)
+
+    # 2. Set Password
+    try:
+        from frappe.utils.password import update_password
+        update_password(email, password)
+    except Exception as e:
+        return {"success": False, "message": f"Failed setting password: {str(e)}"}
+
+    # 3. Insert or Update tabRecruiter Assignment
+    frappe.db.sql("""
+        INSERT INTO `tabRecruiter Assignment` (name, user_email, recruiter_name, assigned_job_id, role, is_active, modified_by, owner)
+        VALUES (%s, %s, %s, %s, 'Recruiter', 1, %s, %s)
+        ON DUPLICATE KEY UPDATE 
+            recruiter_name = VALUES(recruiter_name),
+            assigned_job_id = VALUES(assigned_job_id),
+            is_active = 1,
+            modified_by = VALUES(modified_by)
+    """, (email, email, recruiter_name, assigned_job_id, frappe.session.user, frappe.session.user))
+    
+    frappe.db.commit()
+
+    return {
+        "success": True,
+        "message": f"Recruiter '{recruiter_name}' ({email}) successfully provisioned and assigned to {assigned_job_id}!"
+    }
+
+@frappe.whitelist(allow_guest=True)
+def update_recruiter_account(email: str, recruiter_name: str = None, assigned_job_id: str = None, is_active: int = None, new_password: str = None) -> dict:
+    """Admin-only endpoint to update recruiter details, reassign Job ID, or reset password."""
+
+    email = (email or "").strip().lower()
+    if not email:
+        return {"success": False, "message": "Email is required."}
+
+    updates = []
+    params = []
+
+    if recruiter_name:
+        updates.append("recruiter_name = %s")
+        params.append(recruiter_name.strip())
+        if frappe.db.exists("User", email):
+            u_doc = frappe.get_doc("User", email)
+            u_doc.first_name = recruiter_name.strip()
+            u_doc.save(ignore_permissions=True)
+
+    if assigned_job_id is not None:
+        clean_jobs = [j.strip().upper() for j in assigned_job_id.split(",") if j.strip()]
+        norm_jobs_str = ", ".join(clean_jobs) if clean_jobs else "J001"
+        updates.append("assigned_job_id = %s")
+        params.append(norm_jobs_str)
+
+    if is_active is not None:
+        act_val = int(is_active)
+        updates.append("is_active = %s")
+        params.append(act_val)
+        if frappe.db.exists("User", email):
+            u_doc = frappe.get_doc("User", email)
+            u_doc.enabled = act_val
+            u_doc.save(ignore_permissions=True)
+
+    if new_password and new_password.strip():
+        from frappe.utils.password import update_password
+        update_password(email, new_password.strip())
+
+    if updates:
+        params.append(email)
+        query = f"UPDATE `tabRecruiter Assignment` SET {', '.join(updates)} WHERE user_email = %s"
+        frappe.db.sql(query, tuple(params))
+        frappe.db.commit()
+
+    return {"success": True, "message": f"Recruiter account {email} updated successfully."}
+
+@frappe.whitelist(allow_guest=True)
+def admin_create_candidate_profile(candidate_name: str, position_applied: str, current_location: str, experience_years: float = 0, expected_ctc: float = 0, phone: str = None, email: str = None, profile_tags: str = None, resume_url: str = None) -> dict:
+    """Admin-only endpoint to register a candidate profile into Frappe."""
+
+    if not candidate_name or not candidate_name.strip():
+        return {"success": False, "message": "Candidate Name is required."}
+
+    # Generate next ID
+    existing = frappe.db.sql("SELECT COUNT(*) as cnt FROM `tabJob Candidate`", as_dict=True)
+    next_idx = (existing[0]["cnt"] if existing else 0) + 1
+    new_id = f"CAND-2026-{str(next_idx).zfill(5)}"
+
+    cand_doc = frappe.get_doc({
+        "doctype": "Job Candidate",
+        "name": new_id,
+        "candidate_name": candidate_name.strip(),
+        "position_applied": (position_applied or "Analyst").strip(),
+        "current_location": (current_location or "Patna").strip(),
+        "experience_years": float(experience_years or 0),
+        "expected_ctc": float(expected_ctc or 0),
+        "phone": (phone or "").strip(),
+        "email": (email or "").strip(),
+        "profile_tags": (profile_tags or "").strip(),
+        "resume": (resume_url or "").strip(),
+        "status": "New",
+        "selection_status": "Available",
+        "job_locks": "{}",
+        "source": "Admin Registered"
+    })
+    cand_doc.insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    return {
+        "success": True,
+        "candidate_id": new_id,
+        "message": f"Candidate '{candidate_name}' successfully registered with ID {new_id}!"
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_next_job_id() -> dict:
+    """Helper to auto-generate the next sequential Job ID Code (e.g. J007)."""
+    openings = frappe.db.sql("SELECT job_title FROM `tabJob Opening`", as_dict=True)
+    max_num = 0
+    import re
+    for o in openings:
+        title = o.get("job_title") or ""
+        matches = re.findall(r'J0*(\d+)', title, re.IGNORECASE)
+        for m in matches:
+            try:
+                val = int(m)
+                if val > max_num:
+                    max_num = val
+            except ValueError:
+                pass
+    next_num = max_num + 1 if max_num > 0 else len(openings) + 1
+    next_id = f"J{str(next_num).zfill(3)}"
+    return {
+        "success": True,
+        "next_job_id": next_id
+    }

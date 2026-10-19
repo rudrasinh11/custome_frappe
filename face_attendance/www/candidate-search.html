@@ -14,8 +14,64 @@
   <!-- Vue 3 -->
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
   
-  <!-- Lucide Icons -->
+  <!-- Lucide Icons with Safe Vue 3 Non-Destructive Wrapper -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    (function() {
+      if (window.lucide) {
+        // Alias trello to kanban to prevent icon not found warnings
+        if (window.lucide.Kanban) {
+          window.lucide.Trello = window.lucide.Kanban;
+        }
+        if (window.lucide.icons && window.lucide.icons.Kanban) {
+          window.lucide.icons.Trello = window.lucide.icons.Kanban;
+        }
+
+        // Safe createIcons implementation for Vue 3 Virtual DOM reconciliation.
+        // Standard lucide.createIcons calls `element.parentNode.replaceChild(svg, element)`.
+        // That detaches the Vue-managed node from the DOM, causing Vue's patcher to throw:
+        // "TypeError: Cannot read properties of null (reading 'insertBefore')".
+        // Instead, we safely insert the generated SVG inside the element without detaching it.
+        window.lucide.createIcons = function() {
+          const toPascal = (str) => {
+            if (!str) return '';
+            return str.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+          };
+
+          const elements = document.querySelectorAll('[data-lucide]');
+          elements.forEach(el => {
+            let iconName = el.getAttribute('data-lucide');
+            if (!iconName) return;
+            if (iconName === 'trello') iconName = 'kanban';
+
+            const pascalName = toPascal(iconName);
+            const iconNode = (window.lucide.icons && window.lucide.icons[pascalName]) || window.lucide[pascalName];
+            if (!iconNode) return;
+
+            // If already rendered with current icon name, skip
+            if (el.getAttribute('data-rendered-icon') === iconName && el.firstElementChild) {
+              return;
+            }
+
+            try {
+              const svg = window.lucide.createElement(iconNode, {
+                width: el.style.width || el.getAttribute('width') || '16',
+                height: el.style.height || el.getAttribute('height') || '16',
+                class: 'lucide lucide-' + iconName + ' ' + (el.getAttribute('class') || '')
+              });
+              
+              // Non-destructive: populate inside el so el is NEVER removed from Vue's DOM tree!
+              el.innerHTML = '';
+              el.appendChild(svg);
+              el.setAttribute('data-rendered-icon', iconName);
+            } catch (err) {
+              // Silently ignore
+            }
+          });
+        };
+      }
+    })();
+  </script>
 
   <style>
     [v-cloak] { display: none !important; }
@@ -66,16 +122,22 @@
 
     /* Top Nav */
     .top-navbar {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border-base);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.85);
       position: sticky;
       top: 0;
-      z-index: 50;
-      padding: 12px 20px;
+      z-index: 100;
+      padding: 0 24px;
+      height: 58px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
 
     .nav-inner {
-      max-width: 1240px;
+      max-width: 1560px;
+      width: 100%;
+      height: 100%;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -83,35 +145,49 @@
       gap: 16px;
     }
 
+    /* Single-Line Creative Brand */
     .nav-brand {
       display: flex;
       align-items: center;
       gap: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
-    .brand-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-base);
+    .brand-logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-primary);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+      flex-shrink: 0;
     }
 
     .brand-name {
-      font-size: 1.05rem;
+      font-size: 1.02rem;
       font-weight: 800;
-      color: var(--text-primary);
+      color: #0f172a;
       letter-spacing: -0.02em;
+      white-space: nowrap;
+      line-height: 1;
     }
 
-    .brand-sub {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-weight: 500;
+    .brand-badge-suite {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #2563eb;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      line-height: 1.2;
     }
 
     .nav-links {
@@ -1156,6 +1232,72 @@
       color: #000000;
     }
 
+    /* Modal Footer Buttons & Universal Cancel Button */
+    .btn-cancel,
+    button.btn-cancel {
+      padding: 9px 20px;
+      border-radius: var(--radius-full, 9999px);
+      font-size: 0.86rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: 1px solid var(--border-base, #e4e4e7);
+      background: #ffffff;
+      color: var(--text-secondary, #52525b);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      outline: none;
+    }
+    .btn-cancel:hover,
+    button.btn-cancel:hover {
+      background: var(--bg-subtle, #f4f4f5);
+      color: var(--text-primary, #18181b);
+      border-color: #d4d4d8;
+    }
+    .btn-cancel:active,
+    button.btn-cancel:active {
+      transform: scale(0.98);
+      background: #e4e4e7;
+    }
+
+    /* Modal Primary Submit Button */
+    .comm-btn.comm-btn-select,
+    .comm-btn-select {
+      background: #0f172a !important;
+      color: #ffffff !important;
+      border: 1px solid #0f172a !important;
+      border-radius: var(--radius-full, 9999px) !important;
+      font-weight: 700 !important;
+      font-family: inherit !important;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .comm-btn.comm-btn-select:hover,
+    .comm-btn-select:hover {
+      background: #1e293b !important;
+      border-color: #1e293b !important;
+      transform: translateY(-1px);
+    }
+    .comm-btn.comm-btn-select:disabled,
+    .comm-btn-select:disabled {
+      background: #94a3b8 !important;
+      border-color: #94a3b8 !important;
+      color: #f8fafc !important;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.7;
+    }
+
     /* Modal Tabs Bar */
     .modal-tabs {
       display: flex;
@@ -1458,27 +1600,50 @@
 
     /* --- View Switcher Tabs in Navbar --- */
     .view-mode-tabs {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       background: #f1f5f9;
+      border: 1px solid #e2e8f0;
       padding: 3px;
-      border-radius: 8px;
-      gap: 4px;
+      border-radius: 10px;
+      gap: 3px;
+      flex-shrink: 0;
     }
 
     .view-tab-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 6px;
+      gap: 7px;
+      padding: 6px 13px;
+      border-radius: 7px;
       border: none;
       background: transparent;
-      color: var(--text-secondary, #64748b);
-      font-size: 0.82rem;
+      color: #64748b;
+      font-size: 0.81rem;
       font-weight: 700;
+      white-space: nowrap; /* GUARANTEED SINGLE LINE - NO DUAL LINES */
       cursor: pointer;
       transition: all 0.15s ease;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .tab-counter-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      color: #334155;
+      margin-left: 2px;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .view-tab-btn.active .tab-counter-badge {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
     }
 
     .view-tab-btn:hover {
@@ -1652,17 +1817,18 @@
   
     /* --- Test Kanban Board (Matches Frappe Desk Screenshot 5) --- */
     .kanban-desk-theme {
-      background: #18181b;
-      color: #f4f4f5;
-      border-radius: 12px;
-      padding: 16px 20px 30px 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-      margin: 20px auto;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid var(--border-base, #e2e8f0);
+      border-radius: 14px;
+      padding: 20px 24px 60px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      margin: 20px auto 60px auto;
       max-width: 1440px;
     }
 
     .kanban-desk-theme.light-mode {
-      background: #f8fafc;
+      background: #ffffff;
       color: #0f172a;
       border: 1px solid #e2e8f0;
     }
@@ -1745,11 +1911,61 @@
 
     .kanban-desk-columns {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
+      grid-template-columns: repeat(5, minmax(270px, 1fr));
+      gap: 16px;
       align-items: flex-start;
       overflow-x: auto;
-      min-height: 520px;
+      min-height: 560px;
+      padding-bottom: 40px;
+      margin-bottom: 30px;
+      scrollbar-width: thin;
+    }
+
+    .nav-user-account {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .account-select-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border-base, #e2e8f0);
+      border-radius: 8px;
+      padding: 5px 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.15s ease;
+    }
+
+    .account-select-wrapper:hover {
+      border-color: #3b82f6;
+    }
+
+    .account-select-dropdown {
+      border: none;
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .user-avatar-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
     }
 
     @media (max-width: 1100px) {
@@ -1759,16 +1975,16 @@
     }
 
     .kanban-desk-col {
-      background: #27272a;
-      border: 1px solid #3f3f46;
-      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
       min-height: 480px;
       display: flex;
       flex-direction: column;
     }
 
     .kanban-desk-theme.light-mode .kanban-desk-col {
-      background: #ffffff;
+      background: #f8fafc;
       border-color: #e2e8f0;
     }
 
@@ -1832,58 +2048,286 @@
     }
 
     .desk-card-list {
-      padding: 8px 12px 16px 12px;
+      padding: 8px 10px 32px 10px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       flex: 1;
+      max-height: calc(100vh - 230px);
+      min-height: 400px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .desk-card:last-child {
+      margin-bottom: 16px;
+    }
+
+    .desk-card-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .desk-card-list::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 4px;
     }
 
     .desk-card {
-      background: #18181b;
-      border: 1px solid #3f3f46;
-      border-radius: 8px;
-      padding: 12px;
-      color: #f4f4f5;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      transition: transform 0.15s, border-color 0.15s;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      padding: 10px 12px;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.16s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      cursor: pointer;
+      position: relative;
     }
 
     .desk-card:hover {
-      border-color: #71717a;
-      transform: translateY(-1px);
+      border-color: #3b82f6;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.22);
+      transform: translateY(-2px);
     }
 
     .kanban-desk-theme.light-mode .desk-card {
       background: #ffffff;
-      border-color: #e2e8f0;
+      border: 1px solid #e2e8f0;
       color: #0f172a;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
+    .kanban-desk-theme.light-mode .desk-card:hover {
+      border-color: #2563eb;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Card Top Bar */
+    .desk-card-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .desk-card-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .desk-card-recruiter-pill {
+      font-size: 0.66rem;
+      font-weight: 600;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 4px;
+      padding: 1px 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .kanban-desk-theme.light-mode .desk-card-recruiter-pill {
+      color: #0369a1;
+      background: #f0f9ff;
+      border-color: #bae6fd;
+    }
+
+    .desk-card-stage-dropdown {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      height: 22px;
+      border-radius: 4px;
+      background: #27272a;
+      color: #e4e4e7;
+      border: 1px solid #3f3f46;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.12s ease;
+    }
+
+    .desk-card-stage-dropdown:hover {
+      border-color: #60a5fa;
+      color: #ffffff;
+    }
+
+    .kanban-desk-theme.light-mode .desk-card-stage-dropdown {
+      background: #f8fafc;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    .kanban-desk-theme.light-mode .desk-card-stage-dropdown:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    /* Card Body */
+    .desk-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
     .desk-card-name {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 700;
       color: #ffffff;
-      margin-bottom: 4px;
+      line-height: 1.35;
+      word-break: break-word;
+      transition: color 0.12s ease;
+    }
+
+    .desk-card:hover .desk-card-name {
+      color: #60a5fa;
     }
 
     .kanban-desk-theme.light-mode .desk-card-name {
       color: #0f172a;
     }
 
-    .desk-card-actions {
+    .kanban-desk-theme.light-mode .desk-card:hover .desk-card-name {
+      color: #1d4ed8;
+    }
+
+    .desk-card-meta-row {
+      font-size: 0.74rem;
+      color: #a1a1aa;
+      line-height: 1.3;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .kanban-desk-theme.light-mode .desk-card-meta-row {
+      color: #64748b;
+    }
+
+    .desk-card-role {
+      font-weight: 600;
+      color: #d4d4d8;
+    }
+
+    .kanban-desk-theme.light-mode .desk-card-role {
+      color: #334155;
+    }
+
+    .desk-card-loc {
+      color: #71717a;
+    }
+
+    .kanban-desk-theme.light-mode .desk-card-loc {
+      color: #64748b;
+    }
+
+    /* Card Footer & Action Pills */
+    .desk-card-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid #27272a;
+      gap: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      margin-top: 2px;
     }
 
-    .kanban-desk-theme.light-mode .desk-card-actions {
+    .kanban-desk-theme.light-mode .desk-card-footer {
       border-top-color: #f1f5f9;
     }
+
+    .desk-card-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .desk-action-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.70rem;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.12s ease;
+      line-height: 1;
+    }
+
+    .call-pill {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .call-pill:hover {
+      background: rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+    }
+
+    .kanban-desk-theme.light-mode .call-pill {
+      background: #ecfdf5;
+      color: #059669;
+      border-color: #a7f3d0;
+    }
+
+    .kanban-desk-theme.light-mode .call-pill:hover {
+      background: #d1fae5;
+    }
+
+    .email-pill {
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    .email-pill:hover {
+      background: rgba(59, 130, 246, 0.25);
+      color: #93c5fd;
+    }
+
+    .kanban-desk-theme.light-mode .email-pill {
+      background: #eff6ff;
+      color: #2563eb;
+      border-color: #bfdbfe;
+    }
+
+    .kanban-desk-theme.light-mode .email-pill:hover {
+      background: #dbeafe;
+    }
+
+    .view-pill {
+      background: #27272a;
+      color: #a1a1aa;
+      border-color: #3f3f46;
+    }
+
+    .view-pill:hover {
+      background: #3f3f46;
+      color: #ffffff;
+    }
+
+    .kanban-desk-theme.light-mode .view-pill {
+      background: #f8fafc;
+      color: #475569;
+      border-color: #cbd5e1;
+    }
+
+    .kanban-desk-theme.light-mode .view-pill:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
 
     /* --- Recruitment Dashboard CSS --- */
     .dashboard-container {
@@ -2126,7 +2570,330 @@
       color: #991b1b;
     }
 
-  </style>
+    /* --- Recruiter Scope / Persona Switcher CSS --- */
+    .recruiter-persona-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 3px 6px;
+      margin-left: auto;
+    }
+    .persona-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+    .persona-pill {
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .persona-pill:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .persona-pill.active {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .persona-pill.pill-j001.active {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+    .persona-pill.pill-j002.active {
+      background: #faf5ff;
+      color: #7e22ce;
+      border-color: #e9d5ff;
+    }
+
+  
+    /* ========================================================= */
+    /* ADMIN CONTROL PANEL & RECRUITER PROVISIONING STYLES       */
+    /* ========================================================= */
+    .admin-panel-container {
+      max-width: 1440px;
+      margin: 20px auto 40px auto;
+      padding: 0 24px;
+    }
+
+    .admin-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: #ffffff;
+      padding: 20px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border-base, #e2e8f0);
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .admin-header-title-box h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-header-title-box p {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .admin-action-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .admin-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .admin-btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    }
+
+    .admin-btn-primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .admin-btn-secondary {
+      background: #f8fafc;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    .admin-btn-secondary:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    /* Sub Tabs in Admin Panel */
+    .admin-sub-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    .admin-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-base, #e2e8f0);
+      background: #ffffff;
+      color: #64748b;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .admin-tab-btn:hover {
+      color: #0f172a;
+      background: #f8fafc;
+    }
+
+    .admin-tab-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modern Table for Recruiters */
+    .admin-table-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .admin-table-head-bar {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .admin-table-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .admin-data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .admin-data-table th {
+      padding: 12px 18px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .admin-data-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.84rem;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+
+    .admin-data-table tr:hover td {
+      background: #fafaf9;
+    }
+
+    .recruiter-user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .recruiter-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+      border: 1px solid #bfdbfe;
+    }
+
+    .recruiter-cell-name {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .recruiter-cell-email {
+      font-size: 0.74rem;
+      color: #64748b;
+      margin-top: 1px;
+    }
+
+    .status-pill-active {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-pill-inactive {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .row-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .row-action-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Candidate Creation Panel Form */
+    .cand-create-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    
+</style>
 </head>
 <body>
 
@@ -2136,17 +2903,16 @@
     <!-- Top Nav Header -->
     <header class="top-navbar">
       <div class="nav-inner">
+        <!-- 1. Sleek Brand on Single Line -->
         <div class="nav-brand">
-          <div class="brand-icon">
-            <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+          <div class="brand-logo-mark">
+            <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
           </div>
-          <div>
-            <div class="brand-name">Talent Discovery & Frappe HR</div>
-            <div class="brand-sub">Recruitment Suite & Concurrency Portal</div>
-          </div>
+          <span class="brand-name">Talent Discovery</span>
+          <span class="brand-badge-suite">HR Suite</span>
         </div>
 
-        <!-- 4 Universal App Suite Navigation Tabs -->
+        <!-- 2. Creative Segmented Navigation Tabs on Single Line -->
         <div class="view-mode-tabs">
           <button 
             type="button" 
@@ -2162,9 +2928,9 @@
             class="view-tab-btn" 
             :class="{ active: currentViewMode === 'kanban' }"
             @click="openKanbanView">
-            <i data-lucide="trello" style="width: 14px; height: 14px;"></i>
-            <span>Applicant Kanban (test)</span>
-            <span class="recruiter-count-pill" v-if="kanbanTotalCards" style="background:#dbeafe; color:#1e40af;">{{ kanbanTotalCards }}</span>
+            <i data-lucide="kanban" style="width: 14px; height: 14px;"></i>
+            <span>Pipeline Kanban</span>
+            <span class="tab-counter-badge" v-if="kanbanTotalCards">{{ kanbanTotalCards }}</span>
           </button>
 
           <button 
@@ -2182,82 +2948,56 @@
             :class="{ active: currentViewMode === 'openings' }"
             @click="openOpeningsView">
             <i data-lucide="briefcase" style="width: 14px; height: 14px;"></i>
-            <span>Job Openings ({{ allOpenings.length }})</span>
+            <span>{{ currentUserState.is_admin ? "Job Openings" : "My Job Openings" }}</span>
+            <span class="tab-counter-badge">{{ visibleOpenings.length }}</span>
           </button>
+          <!-- Unified SuperAdmin Control Center (Visible only when Admin) -->
+          <button
+            v-if="currentUserState.is_admin"
+            type="button"
+            class="view-tab-btn"
+            :class="{ active: currentViewMode === 'admin' }"
+            @click="openAdminPanelView"
+            style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.12)); border: 1px solid rgba(99, 102, 241, 0.35); color: #4338ca; font-weight: 800;">
+            <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #4f46e5;"></i>
+            <span>SuperAdmin Center</span>
+            <span class="tab-counter-badge" style="background:#4f46e5; color:#ffffff;">{{ adminRecruiters.length || '•' }}</span>
+          </button>
+
+          
         </div>
 
-        <!-- Direct Frappe Desk Quick Links -->
-        <div class="nav-links">
-          <a href="http://127.0.0.1:8000/desk/job-applicant/view/kanban/test" target="_blank" class="nav-btn" title="Open Desk Kanban test board">
-            <i data-lucide="trello" style="width: 13px; height: 13px;"></i>
-            <span>Desk Kanban ↗</span>
-          </a>
-          <a href="http://127.0.0.1:8000/desk/dashboard-view/Recruitment" target="_blank" class="nav-btn" title="Open Frappe Desk Recruitment Dashboard">
-            <i data-lucide="line-chart" style="width: 13px; height: 13px;"></i>
-            <span>Desk Dashboard ↗</span>
-          </a>
-          <a href="http://127.0.0.1:8000/desk/job-opening" target="_blank" class="nav-btn" title="Open Frappe Desk Job Openings">
-            <i data-lucide="briefcase" style="width: 13px; height: 13px;"></i>
-            <span>Desk Openings ↗</span>
-          </a>
+                <!-- Professional User Identity & Assigned Scope -->
+        <div class="nav-user-account" style="display:flex; align-items:center; gap:12px;">
+          <!-- Recruiter Multi-Job Dropdown Selector (Visible when Recruiter has multiple jobs assigned) -->
+          <div v-if="!currentUserState.is_admin && currentUserState.assigned_jobs && currentUserState.assigned_jobs.length > 1" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:20px; padding:4px 12px; display:inline-flex; align-items:center; gap:6px;">
+            <i data-lucide="layers" style="width:13px; height:13px; color:#2563eb;"></i>
+            <span style="font-size:0.72rem; font-weight:800; color:#1e40af; text-transform:uppercase;">Scope:</span>
+            <select
+              v-model="activeRecruiterJobFilter"
+              @change="onRecruiterJobFilterChange"
+              style="border:none; background:transparent; font-size:0.78rem; font-weight:800; color:#1e3a8a; cursor:pointer; outline:none; font-family:'JetBrains Mono', monospace;">
+              <option value="ALL_ASSIGNED">All My Jobs ({{ currentUserState.assigned_jobs.join(', ') }})</option>
+              <option v-for="j in currentUserState.assigned_jobs" :key="j" :value="j">{{ j }}</option>
+            </select>
+          </div>
+
+          <!-- Professional User Profile Badge (Unified Sleek Dark Avatar & Clean Name Only) -->
+          <div class="account-select-wrapper" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:24px; padding:4px 14px 4px 6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+            <div class="user-avatar-badge" style="background:#0f172a; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <i :data-lucide="currentUserState.is_admin ? 'shield-check' : 'user-check'" style="width: 14px; height: 14px; color:#ffffff;"></i>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <span style="font-weight:700; font-size:0.85rem; color:#0f172a; white-space:nowrap;">{{ currentUserState.full_name || 'Administrator' }}</span>
+            </div>
+            <!-- Clean Sign Out -->
+            <a href="/login" style="margin-left:4px; color:#94a3b8; text-decoration:none; display:inline-flex; align-items:center;" title="Sign Out">
+              <i data-lucide="log-out" style="width:13px; height:13px;"></i>
+            </a>
+          </div>
         </div>
       </div>
     </header>
-
-    <!-- Recruiter Job ID Workspace Bar -->
-    <div class="recruiter-workspace-bar">
-      <div class="workspace-bar-inner">
-        <div class="recruiter-pill-group">
-          <span class="workspace-label">
-            <i data-lucide="shield-check" style="width:16px;height:16px;color:#2563eb;"></i>
-            <b>Recruiter Workspace:</b>
-          </span>
-          <!-- 50 Recruiters on J001 -->
-          <button 
-            type="button" 
-            class="job-scope-btn" 
-            :class="{ active: activeRecruiterJobId === 'J001' }"
-            @click="setRecruiterJobId('J001')">
-            <span class="job-indicator dot-j001"></span>
-            <b>Job J001: Analyst</b>
-            <span class="recruiter-count-pill">50 Recruiters</span>
-            <span class="lock-count-pill" v-if="jobLockCounts && jobLockCounts.J001">🔒 {{ jobLockCounts.J001 }} Locked</span>
-          </button>
-          <!-- 50 Recruiters on J002 -->
-          <button 
-            type="button" 
-            class="job-scope-btn btn-j002" 
-            :class="{ active: activeRecruiterJobId === 'J002' }"
-            @click="setRecruiterJobId('J002')">
-            <span class="job-indicator dot-j002"></span>
-            <b>Job J002: Analyst</b>
-            <span class="recruiter-count-pill">50 Recruiters</span>
-            <span class="lock-count-pill" v-if="jobLockCounts && jobLockCounts.J002">🔒 {{ jobLockCounts.J002 }} Locked</span>
-          </button>
-          <!-- View All -->
-          <button 
-            type="button" 
-            class="job-scope-btn" 
-            :class="{ active: activeRecruiterJobId === 'All' }"
-            @click="setRecruiterJobId('All')">
-            <b>🌐 All Job IDs</b>
-          </button>
-        </div>
-
-        <!-- Real-time scope explanation -->
-        <div class="workspace-hint">
-          <template v-if="activeRecruiterJobId === 'J001'">
-            <span style="color:#1d4ed8; font-weight:700;">Active in J001 Team:</span> Locking candidate for J001 closes it for remaining 49 J001 recruiters, but keeps them <b>OPEN for all 50 recruiters of J002</b>.
-          </template>
-          <template v-else-if="activeRecruiterJobId === 'J002'">
-            <span style="color:#7e22ce; font-weight:700;">Active in J002 Team:</span> Locking candidate for J002 closes it for remaining 49 J002 recruiters, but keeps them <b>OPEN for all 50 recruiters of J001</b>.
-          </template>
-          <template v-else>
-            Viewing candidate pool across all Job IDs and recruiters.
-          </template>
-        </div>
-      </div>
-    </div>
 
         <!-- Main Discovery View -->
     <main class="main-wrap" v-show="currentViewMode === 'discovery'">
@@ -2475,10 +3215,20 @@
               <button 
                 type="button" 
                 class="portal-tab-btn" 
-                :class="{ active: activeViewTab === 'groups' && !filterGroup }" 
-                @click="setViewTab('groups')">
+                :class="{ active: activeViewTab === 'groups' && !filterGroup && !filterOnlyMyJob }" 
+                @click="filterOnlyMyJob = false; setViewTab('groups')">
                 <i data-lucide="folder-check" style="width: 14px; height: 14px; color:#2563eb;"></i>
                 <span>In Groups / Drives ({{ selectedCandidatesCount }})</span>
+              </button>
+
+              <button 
+                v-if="activeRecruiterJobId !== 'All'"
+                type="button" 
+                class="portal-tab-btn" 
+                :class="{ active: filterOnlyMyJob }" 
+                @click="toggleOnlyMyJob">
+                <i data-lucide="user-check" style="width: 14px; height: 14px; color:#6366f1;"></i>
+                <span>My {{ activeRecruiterJobId }} Candidates</span>
               </button>
             </div>
 
@@ -2612,9 +3362,9 @@
                   <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
                   <span>Notice: <b>{{ cand.notice_period }}</b></span>
                 </div>
-                <div class="meta-chip" v-if="cand.expected_ctc">
+                <div class="meta-chip" v-if="(cand.salary_display && cand.salary_display !== 'Disclosed') || cand.expected_ctc">
                   <i data-lucide="indian-rupee" style="width: 13px; height: 13px;"></i>
-                  <span>Expected: <b>₹{{ cand.expected_ctc.toLocaleString('en-IN') }}</b></span>
+                  <span>Expected: <b>{{ (cand.salary_display && cand.salary_display !== 'Disclosed') ? cand.salary_display : (cand.expected_ctc ? '₹' + Number(cand.expected_ctc).toLocaleString('en-IN') : 'Not Disclosed') }}</b></span>
                 </div>
                 <!-- Plan B Resume Status Badge -->
                 <div class="meta-chip" v-if="cand.is_uploaded_resume" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:600;">
@@ -2627,35 +3377,26 @@
                 </div>
               </div>
 
-              <!-- Job ID Status Badges (J001 & J002) -->
-              <div class="cand-job-status-badges">
-                <!-- J001 Scope Badge -->
+              <!-- Dynamic Job ID Status Badges (All Active Openings) -->
+              <div class="cand-job-status-badges" v-if="activeOpeningsList && activeOpeningsList.length">
                 <span 
+                  v-for="op in activeOpeningsList" 
+                  :key="op.job_id"
                   class="job-scope-tag" 
-                  :class="cand.job_locks && (cand.job_locks.J001 || cand.job_locks.j001) ? 'tag-locked' : 'tag-open'">
-                  <i :data-lucide="cand.job_locks && (cand.job_locks.J001 || cand.job_locks.j001) ? 'lock' : 'check-circle-2'" style="width:11px; height:11px;"></i>
-                  <span><b>J001:</b> {{ cand.job_locks && (cand.job_locks.J001 || cand.job_locks.j001) ? 'Screening (' + (cand.job_locks.J001 || cand.job_locks.j001).selected_by + ')' : 'Available' }}</span>
-                </span>
-                <!-- J002 Scope Badge -->
-                <span 
-                  class="job-scope-tag" 
-                  :class="cand.job_locks && (cand.job_locks.J002 || cand.job_locks.j002) ? 'tag-locked' : 'tag-open'">
-                  <i :data-lucide="cand.job_locks && (cand.job_locks.J002 || cand.job_locks.j002) ? 'lock' : 'check-circle-2'" style="width:11px; height:11px;"></i>
-                  <span><b>J002:</b> {{ cand.job_locks && (cand.job_locks.J002 || cand.job_locks.j002) ? 'Screening (' + (cand.job_locks.J002 || cand.job_locks.j002).selected_by + ')' : 'Available' }}</span>
+                  :class="getJobLockStatus(cand, op.job_id) ? 'tag-locked' : 'tag-open'">
+                  <i :data-lucide="getJobLockStatus(cand, op.job_id) ? 'lock' : 'check-circle-2'" style="width:11px; height:11px;"></i>
+                  <span><b>{{ op.job_id }}:</b> {{ getJobLockStatus(cand, op.job_id) ? 'Screening (' + (getJobLockStatus(cand, op.job_id).selected_by || 'Recruiter') + ')' : 'Available' }}</span>
                 </span>
               </div>
 
-              <!-- Skills & Profile Tags -->
-              <div class="cand-tags-wrap" v-if="cand.tags_list && cand.tags_list.length">
+              <!-- Skills & Profile Tags (Showing ALL tags from resume) -->
+              <div class="cand-tags-wrap" v-if="(cand.tags_list && cand.tags_list.length) || cand.profile_tags">
                 <span 
-                  v-for="t in getUniqueTags(cand.tags_list).slice(0, 4)" 
+                  v-for="t in getUniqueTags(cand.tags_list || cand.profile_tags)" 
                   :key="t" 
                   class="skill-tag"
                   :class="{ 'highlight-tag': isTagMatched(t) }">
                   #{{ t }}
-                </span>
-                <span v-if="getUniqueTags(cand.tags_list).length > 4" class="skill-tag" style="background:#f1f5f9; color:#64748b; font-weight:700;" @click="openCandidateProfile(cand)">
-                  +{{ getUniqueTags(cand.tags_list).length - 4 }} more
                 </span>
               </div>
 
@@ -2665,7 +3406,7 @@
                 <div class="fast-comm-group">
                   <!-- + Select Candidate Button for Available Candidates in Active Job Scope -->
                   <button 
-                    v-if="!cand.is_locked_for_my_job"
+                    v-if="activeRecruiterJobId === 'All' || !cand.is_locked_for_my_job"
                     type="button" 
                     class="comm-btn comm-btn-select" 
                     @click="openSelectionModal(cand)" 
@@ -2759,10 +3500,7 @@
                     <option value="Rejected">Status: Rejected</option>
                   </select>
 
-                  <a :href="cand.desk_url" target="_blank" class="comm-btn" title="Open Document in Frappe Desk">
-                    <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
-                    <span>Desk</span>
-                  </a>
+                  <button type="button" @click="openCandidateProfile(cand)" class="comm-btn" title="View Full Candidate Profile"><i data-lucide="eye" style="width:13px; height:13px;"></i></button>
                 </div>
               </div>
 
@@ -2799,11 +3537,16 @@
         </section>
 
       </div>
+    </main>
 
 
     <!-- ========================================================= -->
     <!-- CANDIDATE PROFILE PREVIEW MODAL / SLIDE-OVER SHEET        -->
+    
     <!-- ========================================================= -->
+    <!-- ADMIN MANAGEMENT & RECRUITER ACCESS CONTROL PANEL        -->
+    <!-- ========================================================= -->
+    
     <div class="modal-backdrop" v-if="showProfileModal" @click.self="closeCandidateProfile">
       <div class="profile-modal" v-if="selectedCandidate">
         
@@ -2881,7 +3624,9 @@
             </div>
             <div class="m-stat-box">
               <div class="m-stat-label">Expected CTC</div>
-              <div class="m-stat-val">{{ selectedCandidate.salary_display || 'Disclosed' }}</div>
+              <div class="m-stat-val" :style="{ color: (selectedCandidate.salary_display && selectedCandidate.salary_display !== 'Not Disclosed' && selectedCandidate.salary_display !== 'Disclosed') ? '#059669' : '#64748b' }">
+                {{ (selectedCandidate.salary_display && selectedCandidate.salary_display !== 'Disclosed') ? selectedCandidate.salary_display : (selectedCandidate.expected_ctc ? '₹' + Number(selectedCandidate.expected_ctc).toLocaleString('en-IN') : 'Not Disclosed') }}
+              </div>
             </div>
             <div class="m-stat-box">
               <div class="m-stat-label">Relevance Match</div>
@@ -2958,14 +3703,17 @@
             </div>
 
             <div class="m-card-panel">
-              <div class="m-panel-title">Key Skills & Core Competencies</div>
+              <div class="m-panel-title">Key Skills & Core Competencies (All Resume Tags)</div>
               <div style="display:flex; flex-wrap:wrap; gap:6px;">
                 <span 
-                  v-for="sk in selectedCandidate.tags_list" 
+                  v-for="sk in getUniqueTags(selectedCandidate.tags_list || selectedCandidate.profile_tags)" 
                   :key="sk" 
                   class="skill-tag" 
                   style="font-size:0.75rem; padding:4px 10px;">
                   #{{ sk }}
+                </span>
+                <span v-if="!getUniqueTags(selectedCandidate.tags_list || selectedCandidate.profile_tags).length" style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">
+                  No specific tags recorded
                 </span>
               </div>
             </div>
@@ -2986,8 +3734,7 @@
                 type="button" 
                 class="comm-btn comm-btn-primary" 
                 :disabled="isSavingNotes" 
-                @click="
-saveCandidateNotes">
+                @click="saveNotes">
                 <i data-lucide="check" style="width: 13px; height: 13px;"></i>
                 <span>{{ isSavingNotes ? 'Saving...' : 'Save Updated Notes' }}</span>
               </button>
@@ -3123,8 +3870,8 @@ saveCandidateNotes">
           </div>
 
           <div class="edit-modal-footer">
-            <button type="button" class="nav-btn" @click="closeEditModal" :disabled="isSavingCandidate">Cancel</button>
-            <button type="submit" class="nav-btn nav-btn-solid" :disabled="isSavingCandidate" style="background: #2563eb; color: #fff;">
+            <button type="button" class="btn-cancel" @click="closeEditModal" :disabled="isSavingCandidate">Cancel</button>
+            <button type="submit" class="nav-btn nav-btn-solid" :disabled="isSavingCandidate" style="padding: 9px 20px; font-size: 0.86rem; background: #0f172a; color: #fff;">
               <span v-if="isSavingCandidate">Saving...</span>
               <span v-else>Save Changes</span>
             </button>
@@ -3137,9 +3884,9 @@ saveCandidateNotes">
     <!-- MULTI-USER CANDIDATE SELECTION & GROUP ASSIGNMENT MODAL   -->
     <!-- ========================================================= -->
     <div class="modal-backdrop" v-if="showSelectionModal" @click.self="showSelectionModal = false">
-      <div class="profile-modal" style="max-width: 490px; padding: 22px;" v-if="modalCandidate">
+      <div class="profile-modal" style="max-width: 500px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding: 22px; border-radius: 16px;" v-if="modalCandidate">
         <!-- Clean Header -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-light); padding-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border-light); padding-bottom:10px; flex-shrink: 0;">
           <h3 style="font-size:1.15rem; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
             <i data-lucide="user-plus" style="width:20px; height:20px; color:#2563eb;"></i>
             <span>Select & Assign Candidate</span>
@@ -3148,11 +3895,8 @@ saveCandidateNotes">
         </div>
 
         <!-- Candidate Snapshot -->
-        <div style="background:#f8fafc; padding:12px 14px; border-radius:8px; margin-bottom:16px; border:1px solid #e2e8f0;">
+        <div style="background:#f8fafc; padding:10px 14px; border-radius:8px; margin-bottom:12px; border:1px solid #e2e8f0; flex-shrink: 0;">
           <div style="font-weight:800; font-size:1.05rem; color:#0f172a;">{{ modalCandidate.candidate_name }}</div>
-          <div style="font-size:0.8rem; color:#64748b; margin-top:3px;">
-            {{ modalCandidate.position_applied || 'Candidate' }} &bull; {{ modalCandidate.current_location || 'Not Specified' }} &bull; Exp: {{ modalCandidate.experience_years }} Yrs
-          </div>
         </div>
 
         <!-- 1. Select Job Opening & Job ID (Ultra Clean - No recruiter inputs, no group inputs) -->
@@ -3165,7 +3909,7 @@ saveCandidateNotes">
             <span style="font-size:0.72rem; color:#059669; font-weight:700;">Status will be: Screening</span>
           </div>
 
-          <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="max-height: 330px; overflow-y: auto; padding-right: 6px; display:flex; flex-direction:column; gap:8px;">
             <div 
               v-for="op in (allOpenings.length ? allOpenings.filter(o => o.status === 'Open') : jobOpenings)" 
               :key="op.job_id"
@@ -3198,15 +3942,7 @@ saveCandidateNotes">
             </div>
           </div>
 
-          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-top:2px;">
-            <div style="font-size:0.78rem; color:#166534; font-weight:700; display:flex; align-items:center; gap:6px;">
-              <i data-lucide="check-circle" style="width:14px; height:14px; color:#16a34a;"></i>
-              <span>Locked for {{ selectForm.selected_job_id }} Team &bull; Open for Other Job IDs</span>
-            </div>
-            <div style="font-size:0.72rem; color:#475569; margin-top:2px;">
-              Selecting candidate automatically assigns them to {{ selectForm.selected_job_id }} screening, locks out other recruiters of {{ selectForm.selected_job_id }}, and syncs to Frappe HR Desk Kanban Board.
-            </div>
-          </div>
+
         </div>
 
         <!-- Action Buttons -->
@@ -3246,12 +3982,10 @@ saveCandidateNotes">
       <div class="kanban-desk-header">
         <div style="display:flex; align-items:center; gap:12px;">
           <span class="kanban-board-title">
-            <i data-lucide="trello" style="width:20px; height:20px; color:#3b82f6;"></i>
-            <span>test</span>
+            <i data-lucide="kanban" style="width:20px; height:20px; color:#3b82f6;"></i>
+            <span>{{ kanbanFilterJobId !== 'All' ? 'Applicant Pipeline (' + kanbanFilterJobId + ')' : 'Applicant Pipeline' }}</span>
           </span>
-          <button type="button" class="desk-btn" @click="kanbanTheme = (kanbanTheme === 'dark' ? 'light' : 'dark')">
-            <span>{{ kanbanTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Theme' }}</span>
-          </button>
+
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -3260,25 +3994,46 @@ saveCandidateNotes">
             <span>Filter</span>
           </button>
 
-          <select class="stage-select" v-model="kanbanFilterJobId" @change="fetchKanbanBoard" style="background:#27272a; color:#fff; border-color:#3f3f46;">
+          <!-- If Admin: Multi-job dropdown. If Recruiter: Scoped to their assigned Job ID -->
+          <select v-if="currentUserState.is_admin" class="stage-select" v-model="kanbanFilterJobId" @change="fetchKanbanBoard" style="background:#27272a; color:#fff; border-color:#3f3f46;">
             <option value="All">All Job IDs</option>
-            <option value="J001">J001 (Analyst)</option>
-            <option value="J002">J002 (Analyst)</option>
+            <option v-for="op in activeOpeningsList" :key="op.job_id" :value="op.job_id">
+              {{ op.job_id }} ({{ op.designation || op.job_title }})
+            </option>
           </select>
+          <div v-else style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:6px; background:#27272a; border:1px solid #3f3f46; font-size:0.75rem; color:#38bdf8; font-weight:700; font-family:'JetBrains Mono', monospace;">
+            <i data-lucide="lock" style="width:11px; height:11px;"></i>
+            <span>{{ currentUserState.assigned_job_id || 'J001' }}</span>
+          </div>
 
           <button type="button" class="desk-btn" @click="fetchKanbanBoard" title="Reload Kanban">
             <i data-lucide="rotate-cw" style="width:13px; height:13px;" :class="{ 'spin-icon': isLoadingKanban }"></i>
           </button>
 
-          <button type="button" class="desk-btn desk-btn-primary" @click="openQuickAddApplicantModal('Open')">
+          <!-- Clean Search Button & Input for Applicant Pipeline -->
+          <div style="position:relative; display:flex; align-items:center;">
+            <i data-lucide="search" style="position:absolute; left:9px; width:13px; height:13px; color:#64748b; pointer-events:none;"></i>
+            <input 
+              type="text" 
+              v-model="kanbanSearchQuery" 
+              placeholder="Search applicant..." 
+              style="padding: 6px 26px 6px 28px; font-size:0.78rem; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#0f172a; width:155px; outline:none; transition: all 0.15s ease;"
+            />
+            <button 
+              v-if="kanbanSearchQuery" 
+              type="button" 
+              @click="kanbanSearchQuery = ''" 
+              style="position:absolute; right:7px; border:none; background:none; color:#94a3b8; cursor:pointer; font-size:0.95rem; line-height:1;">
+              &times;
+            </button>
+          </div>
+
+          <button type="button" class="desk-btn desk-btn-primary" @click="openQuickAddApplicantModal('Open')" style="background:#2563eb; color:#ffffff; font-weight:700; padding:6px 14px; border-radius:6px; display:inline-flex; align-items:center; gap:6px;">
             <i data-lucide="plus" style="width:14px; height:14px;"></i>
-            <span>+ Add Job Applicant</span>
+            <span>Add Job Applicant</span>
           </button>
 
-          <a href="http://127.0.0.1:8000/desk/job-applicant/view/kanban/test" target="_blank" class="desk-btn" title="Open Desk Kanban">
-            <i data-lucide="external-link" style="width:13px; height:13px;"></i>
-            <span>Open in Desk ↗</span>
-          </a>
+          <!-- Frappe desk link removed -->
         </div>
       </div>
 
@@ -3297,56 +4052,90 @@ saveCandidateNotes">
             <i data-lucide="more-horizontal" style="width:14px; height:14px; color:#71717a; cursor:pointer;"></i>
           </div>
 
-          <!-- + Add Job Applicant inside Column (Matching Screenshot 5) -->
+          <!-- Add Job Applicant inside Column -->
           <button type="button" class="desk-col-add-btn" @click="openQuickAddApplicantModal(col.id)">
             <i data-lucide="plus" style="width:12px; height:12px;"></i>
-            <span>+ Add Job Applicant</span>
+            <span>Add Job Applicant</span>
           </button>
 
           <div class="desk-card-list">
             <div 
-              v-for="card in col.cards" 
+              v-for="card in getFilteredCards(col.cards)" 
               :key="card.card_key" 
-              class="desk-card">
+              class="desk-card"
+              @click="openCandidateProfile(card)">
               
-              <div class="desk-card-name">{{ card.candidate_name }}</div>
-              
-              <div style="font-size:0.75rem; color:#a1a1aa; margin-bottom:6px;">
-                {{ card.role }} &bull; {{ card.location }}
-              </div>
-
-              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.72rem; color:#71717a;">
-                <span class="job-id-pill" :class="'pill-' + (card.job_id || 'j001').toLowerCase()">{{ card.job_id || 'J001' }}</span>
-                <span v-if="card.selected_by" style="color:#38bdf8;">By: {{ card.selected_by }}</span>
-              </div>
-
-              <!-- Desk Card Actions -->
-              <div class="desk-card-actions">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <i data-lucide="heart" style="width:13px; height:13px; color:#71717a; cursor:pointer;" title="Favorite"></i>
-                  <a v-if="card.phone" :href="'tel:' + card.phone" class="icon-link-btn" title="Call">
-                    <i data-lucide="phone" style="width:11px; height:11px;"></i>
-                  </a>
-                  <a v-if="card.email" :href="'mailto:' + card.email" class="icon-link-btn" title="Email">
-                    <i data-lucide="mail" style="width:11px; height:11px;"></i>
-                  </a>
+              <!-- Top Row: Badges (Job ID + Recruiter) on Left, Stage Select on Right -->
+              <div class="desk-card-top-bar">
+                <div class="desk-card-badges">
+                  <span class="job-id-pill" :class="'pill-' + (card.job_id || 'j001').toLowerCase()">
+                    {{ card.job_id || 'J001' }}
+                  </span>
+                  <span v-if="card.selected_by" class="desk-card-recruiter-pill" :title="'Recruiter: ' + card.selected_by">
+                    <i data-lucide="user" style="width:10px; height:10px;"></i>
+                    <span>{{ getShortRecruiterName(card.selected_by) }}</span>
+                  </span>
                 </div>
 
+                <!-- Sleek Mini Stage Dropdown -->
                 <select 
-                  class="stage-select" 
+                  class="desk-card-stage-dropdown" 
                   :value="col.id" 
+                  @click.stop
                   @change="moveKanbanCard(card, $event.target.value)"
-                  style="font-size:0.72rem; padding:3px 6px;">
-                  <option value="Open">➔ Open</option>
-                  <option value="Replied">➔ Replied</option>
-                  <option value="Shortlisted">➔ Shortlisted</option>
-                  <option value="Rejected">➔ Rejected</option>
-                  <option value="Hold">➔ Hold</option>
+                  title="Move Candidate Stage">
+                  <option value="Open">Open</option>
+                  <option value="Replied">Replied</option>
+                  <option value="Shortlisted">Shortlisted</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Hold">Hold</option>
                 </select>
               </div>
+
+              <!-- Main Body: Candidate Full Name + Role & Location -->
+              <div class="desk-card-body">
+                <div class="desk-card-name" :title="card.candidate_name">
+                  {{ card.candidate_name }}
+                </div>
+                <div class="desk-card-meta-row">
+                  <span class="desk-card-role" :title="card.role || 'Applicant'">{{ card.role || card.job_title || 'Applicant' }}</span>
+                  <span v-if="card.location" class="desk-card-loc" :title="card.location">
+                    &bull; {{ card.location }}
+                  </span>
+                </div>
+                <!-- Candidate Tags -->
+                <div class="cand-tags-wrap" v-if="(card.tags_list && card.tags_list.length) || card.profile_tags" style="margin-top:6px; gap:4px;">
+                  <span 
+                    v-for="t in getUniqueTags(card.tags_list || card.profile_tags)" 
+                    :key="t" 
+                    class="skill-tag"
+                    style="font-size:0.62rem; padding:1px 5px;">
+                    #{{ t }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Bottom Footer: Action Pills [📞 Call] [✉ Email] [📄 Profile] -->
+              <div class="desk-card-footer">
+                <div class="desk-card-actions-left">
+                  <a v-if="card.phone" :href="'tel:' + card.phone" @click.stop class="desk-action-pill call-pill" :title="'Call ' + card.phone">
+                    <i data-lucide="phone" style="width:11px; height:11px;"></i>
+                    <span>Call</span>
+                  </a>
+                  <a v-if="card.email" :href="'mailto:' + card.email" @click.stop class="desk-action-pill email-pill" :title="'Email ' + card.email">
+                    <i data-lucide="mail" style="width:11px; height:11px;"></i>
+                    <span>Email</span>
+                  </a>
+                </div>
+                <button type="button" @click.stop="openCandidateProfile(card)" class="desk-action-pill view-pill" title="View Dossier">
+                  <i data-lucide="file-text" style="width:11px; height:11px;"></i>
+                  <span>Profile</span>
+                </button>
+              </div>
+
             </div>
 
-            <div v-if="!col.cards.length" class="kanban-empty-placeholder" style="color:#71717a; border-color:#3f3f46; padding:20px 10px; font-size:0.78rem;">
+            <div v-if="!getFilteredCards(col.cards).length" class="kanban-empty-placeholder" style="color:#71717a; border-color:#3f3f46; padding:16px 8px; font-size:0.74rem;">
               No applicants in {{ col.id }}
             </div>
           </div>
@@ -3364,9 +4153,7 @@ saveCandidateNotes">
           </h2>
           <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">
             Real-time metric telemetry synchronized with 
-            <a href="http://127.0.0.1:8000/desk/dashboard-view/Recruitment" target="_blank" style="color:#2563eb; font-weight:700;">
-              /desk/dashboard-view/Recruitment ↗
-            </a>
+            <span style="color:#2563eb; font-weight:700;">Enterprise Analytics Engine</span>
           </div>
         </div>
 
@@ -3375,10 +4162,7 @@ saveCandidateNotes">
             <i data-lucide="refresh-cw" style="width:13px; height:13px;"></i>
             <span>Refresh Metrics</span>
           </button>
-          <a href="http://127.0.0.1:8000/desk/dashboard-view/Recruitment" target="_blank" class="nav-btn nav-btn-solid">
-            <i data-lucide="external-link" style="width:13px; height:13px;"></i>
-            <span>Open in Desk Dashboard ↗</span>
-          </a>
+          <!-- Desk dashboard link removed -->
         </div>
       </div>
 
@@ -3496,98 +4280,727 @@ saveCandidateNotes">
       </div>
     </div>
 
-    <!-- 4. Job Openings Manager View (Matches http://127.0.0.1:8000/desk/job-opening) -->
+    <!-- 4. Job Openings View: Scoped Hiring Requirements for Recruiter vs Full Control for SuperAdmin -->
     <div v-if="currentViewMode === 'openings'" class="openings-container">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h2 style="font-size:1.35rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
-            <i data-lucide="briefcase" style="width:24px; height:24px; color:#2563eb;"></i>
-            <span>Job Openings Manager</span>
-          </h2>
-          <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">
-            Manage and publish hiring positions. Synchronized with 
-            <a href="http://127.0.0.1:8000/desk/job-opening" target="_blank" style="color:#2563eb; font-weight:700;">
-              /desk/job-opening ↗
-            </a>
+      
+      <!-- RECRUITER VIEW: Strictly Read-Only Assigned Job Opening & Hiring Requirements -->
+      <div v-if="!currentUserState.is_admin">
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:20px 24px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#eff6ff; color:#2563eb;">
+                  <i data-lucide="file-text" style="width:18px; height:18px;"></i>
+                </span>
+                <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin:0;">
+                  My Assigned Job Opening & Hiring Requirements
+                </h2>
+              </div>
+              <p style="font-size:0.78rem; color:#64748b; margin:4px 0 0 38px;">
+                Role specifications, candidate qualifications, and hiring targets assigned to your recruiter profile (<b style="color:#2563eb;">{{ currentUserState.assigned_job_id || 'J001' }}</b>).
+              </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; font-size:0.75rem; font-weight:700; padding:4px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:5px;">
+                <span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span>
+                <span>Active Hiring Scope</span>
+              </span>
+            </div>
           </div>
         </div>
 
-        <div style="display:flex; gap:10px;">
-          <button type="button" class="nav-btn nav-btn-solid" @click="openCreateOpeningModal">
-            <i data-lucide="plus" style="width:13px; height:13px;"></i>
-            <span>+ Create Job Opening</span>
-          </button>
-          <a href="http://127.0.0.1:8000/desk/job-opening" target="_blank" class="nav-btn">
-            <i data-lucide="external-link" style="width:13px; height:13px;"></i>
-            <span>Open in Desk ↗</span>
-          </a>
+        <!-- Cards of Assigned Job Openings with Full Hiring Requirements -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div 
+            v-for="op in visibleOpenings" 
+            :key="op.name"
+            style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:22px; box-shadow:0 2px 5px rgba(0,0,0,0.03);"
+          >
+            <!-- Card Header -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; border-bottom:1px solid #f1f5f9; padding-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()" style="font-size:0.82rem; padding:3px 10px;">
+                    {{ op.job_id }}
+                  </span>
+                  <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin:0;">{{ op.job_title }}</h3>
+                </div>
+                <div style="font-size:0.8rem; color:#64748b;">
+                  Designation / Role: <b style="color:#1e293b;">{{ op.designation || 'Analyst' }}</b> &bull; Department: <b style="color:#1e293b;">{{ op.department || 'Operations' }}</b>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge-open" style="font-size:0.75rem; padding:4px 10px;">● Open for Sourcing</span>
+                <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()" style="font-size:0.75rem;">
+                  {{ op.candidate_count || 0 }} in Pipeline
+                </span>
+              </div>
+            </div>
+
+            <!-- Hiring Requirements Matrix -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:18px;">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase;">Role & Designation</div>
+                <div style="font-size:0.92rem; font-weight:800; color:#0f172a; margin-top:2px;">{{ op.designation || 'Analyst' }}</div>
+                <div style="font-size:0.72rem; color:#2563eb; font-weight:600; margin-top:2px;">Key Primary Focus</div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase;">Target Experience</div>
+                <div style="font-size:0.92rem; font-weight:800; color:#0f172a; margin-top:2px;">0 - 5+ Years</div>
+                <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">Relevant Domain Experience</div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase;">Location / Branch</div>
+                <div style="font-size:0.92rem; font-weight:800; color:#0f172a; margin-top:2px;">{{ op.location || 'Pan-India / Regional HQ' }}</div>
+                <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">Open to Relocation / Local</div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase;">Target Salary Range</div>
+                <div style="font-size:0.92rem; font-weight:800; color:#059669; margin-top:2px;">
+                  {{ (op.lower_range && op.upper_range) ? '₹' + Number(op.lower_range).toLocaleString('en-IN') + ' - ₹' + Number(op.upper_range).toLocaleString('en-IN') : 'Competitive / Standard Budget' }}
+                </div>
+                <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">{{ op.salary_per || 'Monthly' }} CTC Expectation</div>
+              </div>
+            </div>
+
+            <!-- Job Description & Required Competencies Box -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px;">
+              <div style="font-size:0.76rem; font-weight:800; color:#1e293b; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="check-circle-2" style="width:14px; height:14px; color:#059669;"></i>
+                <span>Hiring Specifications & Candidate Screening Criteria</span>
+              </div>
+              <div style="font-size:0.82rem; color:#334155; line-height:1.5;">
+                <div v-if="op.description" v-html="op.description"></div>
+                <div v-else>
+                  <p style="margin:0 0 6px 0;">Candidates evaluated for <b>{{ op.job_title }}</b> must meet the following baseline requirements:</p>
+                  <ul style="margin:0; padding-left:18px; color:#475569; font-size:0.8rem; display:flex; flex-direction:column; gap:3px;">
+                    <li>Proficiency in {{ op.designation || 'relevant' }} execution, reporting, and operational responsibilities.</li>
+                    <li>Strong communication skills in English and regional languages (Hindi / Gujarati / Punjabi).</li>
+                    <li>Clean educational background (Graduate / 12th Pass) with valid verifiable credentials.</li>
+                    <li>Readiness to join within immediate to 15 days notice period.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Read-Only Notice -->
+            <div style="margin-top:12px; font-size:0.72rem; color:#94a3b8; font-style:italic;">
+              * Note: As a recruiter, this job specification is strictly read-only for your candidate screening. Role modifications and vacancy changes are managed by SuperAdmin.
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Openings Table -->
-      <table class="openings-table">
-        <thead>
-          <tr>
-            <th>Job Title & ID</th>
-            <th>Designation</th>
-            <th>Hiring Status</th>
-            <th>Web Desk Publish Status</th>
-            <th>Candidates</th>
-            <th style="text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="op in allOpenings" :key="op.name">
-            <td>
-              <div style="font-weight:700; color:#0f172a; font-size:0.92rem;">{{ op.job_title }}</div>
-              <div style="font-size:0.75rem; color:#64748b;">ID: {{ op.name }} &bull; Job ID: <b>{{ op.job_id }}</b></div>
-            </td>
-            <td>
-              <span style="font-weight:600; color:#334155;">{{ op.designation }}</span>
-            </td>
-            <td>
-              <span :class="op.status === 'Open' ? 'badge-open' : 'badge-closed'">
-                {{ op.status === 'Open' ? '● Open' : '○ Closed' }}
+      <!-- SUPERADMIN VIEW: Full Job Openings Manager with Create & Publish Controls -->
+      <div v-else>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2 style="font-size:1.35rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+              <i data-lucide="briefcase" style="width:24px; height:24px; color:#2563eb;"></i>
+              <span>Job Openings Manager</span>
+            </h2>
+            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">
+              Manage and publish hiring positions. Synchronized with 
+              <span style="color:#2563eb; font-weight:700;">Integrated Position Directory</span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="nav-btn nav-btn-solid" @click="openCreateOpeningModal">
+              <i data-lucide="plus" style="width:13px; height:13px;"></i>
+              <span>+ Create Job Opening</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Openings Table -->
+        <table class="openings-table">
+          <thead>
+            <tr>
+              <th>Job Title & ID</th>
+              <th>Designation</th>
+              <th>Hiring Status</th>
+              <th>Web Desk Publish Status</th>
+              <th>Candidates</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="op in visibleOpenings" :key="op.name">
+              <td>
+                <div style="font-weight:700; color:#0f172a; font-size:0.92rem;">{{ op.job_title }}</div>
+                <div style="font-size:0.75rem; color:#64748b;">ID: {{ op.name }} &bull; Job ID: <b>{{ op.job_id }}</b></div>
+              </td>
+              <td>
+                <span style="font-weight:600; color:#334155;">{{ op.designation }}</span>
+              </td>
+              <td>
+                <span :class="op.status === 'Open' ? 'badge-open' : 'badge-closed'">
+                  {{ op.status === 'Open' ? '● Open' : '○ Closed' }}
+                </span>
+              </td>
+              <td>
+                <button 
+                  type="button" 
+                  class="desk-btn" 
+                  :style="op.publish ? 'background:#eff6ff; color:#1d4ed8; border-color:#93c5fd;' : 'background:#f8fafc; color:#64748b; border-color:#cbd5e1;'"
+                  @click="togglePublish(op)">
+                  <i :data-lucide="op.publish ? 'globe' : 'lock'" style="width:12px; height:12px;"></i>
+                  <span>{{ op.publish ? '🌐 Published on Web Desk' : '🔒 Hidden from Web Desk' }}</span>
+                </button>
+              </td>
+              <td>
+                <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()">
+                  {{ op.candidate_count || 0 }} Candidates
+                </span>
+              </td>
+              <td style="text-align:right;">
+                <button 
+                  v-if="op.status === 'Open'" 
+                  type="button" 
+                  class="desk-btn" 
+                  style="background:#fef2f2; color:#b91c1c; border-color:#fecaca;"
+                  @click="toggleStatus(op, 'Closed')"
+                  title="Close this opening (will hide from active web desk candidate selection)">
+                  <span>Close Job</span>
+                </button>
+                <button 
+                  v-else 
+                  type="button" 
+                  class="desk-btn" 
+                  style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0;"
+                  @click="toggleStatus(op, 'Open')"
+                  title="Re-open this opening (will show in web desk candidate selection)">
+                  <span>Re-open Job</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    
+    <!-- ========================================================= -->
+    <!-- SUPERADMIN CONTROL CENTER (Only visible to Admin)        -->
+    <!-- ========================================================= -->
+    <div v-if="currentViewMode === 'admin' && currentUserState.is_admin" class="admin-panel-container">
+      <!-- Admin Top Banner & Status -->
+      <div class="admin-panel-header">
+        <div class="admin-header-title-box">
+          <h2>
+            <i data-lucide="shield-check" style="width:26px; height:26px; color:#4f46e5;"></i>
+            <span>SuperAdmin Recruitment Control Hub</span>
+          </h2>
+          <p>Full enterprise governance: manage recruiter access, assign multiple job openings per recruiter, and monitor cross-job concurrency oversight.</p>
+        </div>
+
+        <div class="admin-action-btn-group">
+          <button type="button" class="admin-btn admin-btn-secondary" @click="fetchAdminPanelData">
+            <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i>
+            <span>Refresh Live Data</span>
+          </button>
+          <button type="button" class="admin-btn admin-btn-primary" @click="showCreateRecruiterModal = true">
+            <i data-lucide="user-plus" style="width:14px; height:14px;"></i>
+            <span>+ Provision Recruiter</span>
+          </button>
+          <button type="button" class="admin-btn admin-btn-primary" style="background:#0f172a;" @click="openCreateOpeningModal">
+            <i data-lucide="plus" style="width:14px; height:14px;"></i>
+            <span>+ New Job Opening</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Stat Row -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:20px;">
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Active Recruiters</div>
+          <div style="font-size:1.6rem; font-weight:800; color:#0f172a; margin-top:4px;">{{ adminRecruiters.length }}</div>
+          <div style="font-size:0.72rem; color:#10b981; font-weight:600; margin-top:2px;">All Provisioned & Active</div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Total Job Openings</div>
+          <div style="font-size:1.6rem; font-weight:800; color:#2563eb; margin-top:4px;">{{ adminOpenings.length }}</div>
+          <div style="font-size:0.72rem; color:#64748b; font-weight:600; margin-top:2px;">Across all departments</div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Talent Pool Candidates</div>
+          <div style="font-size:1.6rem; font-weight:800; color:#0f172a; margin-top:4px;">{{ adminOverview.total_candidates || 0 }}</div>
+          <div style="font-size:0.72rem; color:#64748b; font-weight:600; margin-top:2px;">Registered in database</div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Locked & In Progress</div>
+          <div style="font-size:1.6rem; font-weight:800; color:#7c3aed; margin-top:4px;">{{ adminOverview.selected_candidates || 0 }}</div>
+          <div style="font-size:0.72rem; color:#7c3aed; font-weight:600; margin-top:2px;">Active recruiter pipelines</div>
+        </div>
+      </div>
+
+      <!-- JOB OPENING WORK ALLOCATION & RECRUITER ASSIGNMENTS -->
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:#eff6ff; color:#2563eb;">
+                <i data-lucide="briefcase" style="width:16px; height:16px;"></i>
               </span>
-            </td>
-            <td>
-              <button 
-                type="button" 
-                class="desk-btn" 
-                :style="op.publish ? 'background:#eff6ff; color:#1d4ed8; border-color:#93c5fd;' : 'background:#f8fafc; color:#64748b; border-color:#cbd5e1;'"
-                @click="togglePublish(op)">
-                <i :data-lucide="op.publish ? 'globe' : 'lock'" style="width:12px; height:12px;"></i>
-                <span>{{ op.publish ? '🌐 Published on Web Desk' : '🔒 Hidden from Web Desk' }}</span>
-              </button>
-            </td>
-            <td>
-              <span class="job-id-pill" :class="'pill-' + op.job_id.toLowerCase()">
-                {{ op.candidate_count || 0 }} Candidates
+              <h3 style="font-size:1.05rem; font-weight:800; color:#0f172a; margin:0;">Job Openings & Person Work Allocations</h3>
+            </div>
+            <p style="font-size:0.75rem; color:#64748b; margin:2px 0 0 36px;">Live breakdown of how many recruiters/persons are actively assigned to work on each job opening.</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button 
+              v-if="adminFilterJobId"
+              type="button" 
+              class="admin-btn admin-btn-secondary" 
+              style="padding:5px 10px; font-size:0.74rem; color:#2563eb; border-color:#bfdbfe; background:#eff6ff;"
+              @click="adminFilterJobId = null"
+            >
+              <i data-lucide="x" style="width:12px; height:12px;"></i>
+              <span>Clear Filter (Showing {{ adminFilterJobId }})</span>
+            </button>
+            <button 
+              type="button" 
+              class="admin-btn admin-btn-secondary" 
+              style="padding:5px 12px; font-size:0.76rem;"
+              @click="fetchAdminPanelData"
+            >
+              <i data-lucide="refresh-cw" style="width:12px; height:12px;"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lightweight Creative Grid of Job Openings with Persons Working -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px;">
+          <div 
+            v-for="job in adminJobAnalytics" 
+            :key="job.job_id"
+            :style="{
+              background: adminFilterJobId === job.job_id ? '#eff6ff' : '#f8fafc',
+              border: adminFilterJobId === job.job_id ? '1.5px solid #3b82f6' : '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }"
+            @click="openJobRecruitersModal(job)"
+            title="Click to view all recruiters assigned to this job opening"
+          >
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-family:'JetBrains Mono', monospace; font-size:0.88rem; font-weight:800; background:#0f172a; color:#ffffff; padding:2px 8px; border-radius:5px; letter-spacing:0.04em;">
+                {{ job.job_id }}
               </span>
-            </td>
-            <td style="text-align:right;">
+              <span 
+                style="font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"
+                :style="job.assigned_recruiters && job.assigned_recruiters.length > 0 ? 'background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;' : 'background:#fef2f2; color:#991b1b; border:1px solid #fecaca;'"
+              >
+                <i data-lucide="user" style="width:11px; height:11px;"></i>
+                <span>{{ (job.assigned_recruiters || []).length }} Person{{ (job.assigned_recruiters || []).length === 1 ? '' : 's' }}</span>
+              </span>
+            </div>
+
+            <div style="font-size:0.84rem; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;">
+              {{ job.job_title }}
+            </div>
+
+            <div style="font-size:0.72rem; color:#64748b; margin-bottom:8px;">
+              Role: <span style="font-weight:600; color:#334155;">{{ job.designation || 'Analyst' }}</span>
+            </div>
+
+            <div style="border-top:1px solid #f1f5f9; margin-top:8px; padding-top:6px; font-size:0.75rem; color:#2563eb; font-weight:700; display:flex; align-items:center; justify-content:space-between;">
+              <span>View Assigned Recruiters ({{ (getRecruitersForJob(job.job_id) || []).length }})</span>
+              <i data-lucide="chevron-right" style="width:13px; height:13px;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- MODAL: View All Recruiters Assigned to Selected Job Opening -->
+      <div class="modal-backdrop" v-if="showJobRecruitersModal" @click.self="showJobRecruitersModal = false">
+        <div class="profile-modal" style="max-width: 580px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; padding: 24px; border-radius: 16px;">
+          <!-- Header -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:12px; flex-shrink: 0;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-family:'JetBrains Mono', monospace; font-size:0.92rem; font-weight:800; background:#0f172a; color:#ffffff; padding:3px 10px; border-radius:6px;">
+                {{ selectedJobForRecruiterView?.job_id }}
+              </span>
+              <div>
+                <h3 style="font-size:1.05rem; font-weight:800; color:#0f172a; margin:0;">
+                  {{ selectedJobForRecruiterView?.job_title }}
+                </h3>
+                <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
+                  Role: <b style="color:#1e293b;">{{ selectedJobForRecruiterView?.designation || 'Analyst' }}</b> &bull; {{ (getRecruitersForJob(selectedJobForRecruiterView?.job_id) || []).length }} Recruiters Assigned
+                </div>
+              </div>
+            </div>
+            <button class="btn-close-modal" @click="showJobRecruitersModal = false">&times;</button>
+          </div>
+
+          <!-- Recruiter List Body -->
+          <div style="flex:1; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
+            <div 
+              v-for="rec in getRecruitersForJob(selectedJobForRecruiterView?.job_id)" 
+              :key="rec.name"
+              style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;"
+            >
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="background:#0f172a; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.82rem; flex-shrink:0;">
+                  {{ rec.recruiter_name ? rec.recruiter_name.charAt(0).toUpperCase() : 'R' }}
+                </div>
+                <div>
+                  <div style="font-weight:700; font-size:0.9rem; color:#0f172a;">{{ rec.recruiter_name }}</div>
+                  <div style="font-size:0.74rem; font-family:'JetBrains Mono', monospace; color:#64748b;">{{ rec.user_email }}</div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;" :style="rec.is_active ? 'background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;' : 'background:#fef2f2; color:#991b1b;'">
+                  {{ rec.is_active ? 'Active' : 'Disabled' }}
+                </span>
+                <span style="font-size:0.72rem; font-weight:700; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:2px 8px; border-radius:12px;">
+                  {{ rec.total_candidates || 0 }} in Pipeline
+                </span>
+                <button 
+                  type="button" 
+                  class="admin-btn admin-btn-primary" 
+                  style="padding:5px 10px; font-size:0.74rem; background:#4f46e5;"
+                  @click="openAssignJobModal(rec); showJobRecruitersModal = false;">
+                  Edit Jobs
+                </button>
+              </div>
+            </div>
+
+            <div v-if="!getRecruitersForJob(selectedJobForRecruiterView?.job_id).length" style="padding:32px 16px; text-align:center; color:#94a3b8; font-size:0.86rem; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;">
+              <i data-lucide="user-x" style="width:28px; height:28px; margin:0 auto 8px auto; color:#94a3b8; display:block;"></i>
+              No recruiters are currently assigned to {{ selectedJobForRecruiterView?.job_id }}.
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0; padding-top:12px; flex-shrink: 0;">
+            <button 
+              type="button" 
+              class="admin-btn admin-btn-primary" 
+              style="padding:6px 14px; font-size:0.78rem;"
+              @click="showCreateRecruiterModal = true; showJobRecruitersModal = false;">
+              <i data-lucide="plus" style="width:13px; height:13px;"></i>
+              <span>Add New Recruiter</span>
+            </button>
+            <button type="button" class="btn-cancel" @click="showJobRecruitersModal = false">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recruiter Accounts & Assigned Job Scopes Table -->
+      <div class="admin-table-card">
+        <div class="admin-table-head-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:14px 18px; border-bottom:1px solid #e2e8f0;">
+          <div>
+            <h3 style="font-size:1rem; font-weight:800; color:#0f172a;">Recruiter Accounts & Assigned Job Scopes</h3>
+            <p style="font-size:0.75rem; color:#64748b; margin-top:2px;">
+              <span v-if="adminFilterJobId">Filtered for recruiters working on <b style="color:#2563eb;">{{ adminFilterJobId }}</b>.</span>
+              <span v-else>Manage all recruiter profiles and assign Job IDs ({{ adminRecruiters.length }} total).</span>
+            </p>
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:10px;">
+            <!-- Recruiter Quick Filter -->
+            <div style="position:relative; display:flex; align-items:center;">
+              <i data-lucide="search" style="position:absolute; left:9px; width:12px; height:12px; color:#64748b; pointer-events:none;"></i>
+              <input 
+                type="text" 
+                v-model="recruiterSearchQuery" 
+                placeholder="Search recruiter..." 
+                style="padding: 5px 24px 5px 26px; font-size:0.76rem; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#0f172a; width:150px; outline:none;"
+              />
               <button 
-                v-if="op.status === 'Open'" 
+                v-if="recruiterSearchQuery" 
                 type="button" 
-                class="desk-btn" 
-                style="background:#fef2f2; color:#b91c1c; border-color:#fecaca;"
-                @click="toggleStatus(op, 'Closed')"
-                title="Close this opening (will hide from active web desk candidate selection)">
-                <span>Close Job</span>
+                @click="recruiterSearchQuery = ''" 
+                style="position:absolute; right:6px; border:none; background:none; color:#94a3b8; cursor:pointer; font-size:0.85rem; line-height:1;">
+                &times;
               </button>
-              <button 
-                v-else 
-                type="button" 
-                class="desk-btn" 
-                style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0;"
-                @click="toggleStatus(op, 'Open')"
-                title="Re-open this opening (will show in web desk candidate selection)">
-                <span>Re-open Job</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+
+            <button type="button" class="admin-btn admin-btn-primary" style="padding:6px 14px; font-size:0.78rem;" @click="showCreateRecruiterModal = true">
+              <i data-lucide="plus" style="width:13px; height:13px;"></i>
+              <span>Add Recruiter</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="openings-table" style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:0.72rem; text-transform:uppercase; color:#64748b; letter-spacing:0.04em;">
+                <th style="padding:12px 18px; text-align:left;">Recruiter Name</th>
+                <th style="padding:12px 18px; text-align:left;">Login Email</th>
+                <th style="padding:12px 18px; text-align:left;">Assigned Job Openings</th>
+                <th style="padding:12px 18px; text-align:center;">Pipeline Count</th>
+                <th style="padding:12px 18px; text-align:center;">Account Status</th>
+                <th style="padding:12px 18px; text-align:right;">Admin Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in displayedAdminRecruiters" :key="r.name" style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease;">
+                <td style="padding:14px 18px;">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="background:#4f46e5; color:white; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem;">
+                      {{ r.recruiter_name ? r.recruiter_name.charAt(0).toUpperCase() : 'R' }}
+                    </div>
+                    <div>
+                      <div style="font-weight:700; font-size:0.88rem; color:#0f172a;">{{ r.recruiter_name }}</div>
+                      <div style="font-size:0.72rem; color:#64748b;">Role: {{ r.role || 'Recruiter' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="padding:14px 18px; font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#334155;">
+                  {{ r.user_email }}
+                </td>
+                <td style="padding:14px 18px;">
+                  <!-- Multiple Job Badges -->
+                  <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+                    <span
+                      v-for="j in (r.assigned_jobs || (r.assigned_job_id ? r.assigned_job_id.split(', ') : ['J001']))"
+                      :key="j"
+                      style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; font-weight:800; background:#e0e7ff; color:#3730a3; padding:3px 8px; border-radius:6px; border:1px solid #c7d2fe;">
+                      {{ j }}
+                    </span>
+                    <button
+                      type="button"
+                      @click="openAssignJobModal(r)"
+                      style="background:#f1f5f9; border:1px dashed #94a3b8; color:#475569; font-size:0.68rem; font-weight:700; padding:2px 7px; border-radius:4px; cursor:pointer;"
+                      title="Add or remove job openings for this recruiter">
+                      + Edit Jobs
+                    </button>
+                  </div>
+                </td>
+                <td style="padding:14px 18px; text-align:center;">
+                  <span style="font-weight:800; font-size:0.85rem; color:#0f172a; background:#f8fafc; padding:3px 10px; border-radius:12px; border:1px solid #e2e8f0;">
+                    {{ r.total_candidates || 0 }}
+                  </span>
+                </td>
+                <td style="padding:14px 18px; text-align:center;">
+                  <span
+                    :style="r.is_active ? 'background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;' : 'background:#fef2f2; color:#991b1b; border:1px solid #fecaca;'"
+                    style="font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px;">
+                    <span :style="r.is_active ? 'background:#10b981;' : 'background:#ef4444;'" style="width:6px; height:6px; border-radius:50%;"></span>
+                    {{ r.is_active ? 'Active' : 'Disabled' }}
+                  </span>
+                </td>
+                <td style="padding:14px 18px; text-align:right;">
+                  <div style="display:inline-flex; align-items:center; gap:6px;">
+                    <button
+                      type="button"
+                      class="admin-btn admin-btn-primary"
+                      style="padding:5px 12px; font-size:0.75rem; background:#4f46e5;"
+                      @click="openAssignJobModal(r)">
+                      <i data-lucide="layers" style="width:12px; height:12px;"></i>
+                      <span>Assign Jobs</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="admin-btn admin-btn-secondary"
+                      style="padding:5px 10px; font-size:0.75rem;"
+                      @click="toggleRecruiterStatus(r)">
+                      {{ r.is_active ? 'Deactivate' : 'Activate' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="displayedAdminRecruiters.length === 0">
+                <td colspan="6" style="padding:28px; text-align:center; color:#94a3b8; font-size:0.85rem;">
+                  No recruiters match current criteria.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Assign Multiple Job Openings to Recruiter -->
+    <div class="modal-backdrop" v-if="showAssignJobModal" @click.self="showAssignJobModal = false">
+      <div class="profile-modal" style="max-width:540px; padding:24px; border-radius:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
+          <div>
+            <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+              <i data-lucide="layers" style="width:20px; height:20px; color:#4f46e5;"></i>
+              <span>Assign Job Openings to Recruiter</span>
+            </h3>
+            <p style="font-size:0.78rem; color:#64748b; margin-top:2px;">Check all job openings this recruiter is authorized to work on.</p>
+          </div>
+          <button class="btn-close-modal" @click="showAssignJobModal = false">&times;</button>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size:0.88rem; font-weight:800; color:#0f172a;">{{ selectedRecruiterForAssign?.recruiter_name }}</div>
+            <div style="font-size:0.75rem; color:#64748b; font-family:'JetBrains Mono', monospace;">{{ selectedRecruiterForAssign?.user_email }}</div>
+          </div>
+          <span style="font-size:0.72rem; background:#eff6ff; color:#2563eb; padding:3px 10px; border-radius:8px; font-weight:800; border:1px solid #bfdbfe;">
+            {{ editJobIds.length }} Job{{ editJobIds.length === 1 ? '' : 's' }} Selected
+          </span>
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <label style="font-size:0.75rem; font-weight:800; color:#334155; text-transform:uppercase; display:block; margin-bottom:8px;">
+            Select Job Openings (Multi-Select Enabled):
+          </label>
+          <div style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; border:1px solid #e2e8f0; border-radius:10px; padding:10px; background:#ffffff;">
+            <label
+              v-for="op in allOpenings"
+              :key="op.name"
+              style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; transition:all 0.15s ease;"
+              :style="editJobIds.includes(extractJobId(op.job_title)) ? 'background:#eef2ff; border-color:#818cf8;' : 'background:#f8fafc;'">
+              <input
+                type="checkbox"
+                :value="extractJobId(op.job_title)"
+                v-model="editJobIds"
+                style="width:16px; height:16px; cursor:pointer; accent-color:#4f46e5;"
+              />
+              <span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; font-weight:800; background:#4f46e5; color:white; padding:2px 7px; border-radius:4px;">
+                {{ extractJobId(op.job_title) }}
+              </span>
+              <span style="font-size:0.84rem; font-weight:700; color:#1e293b; flex:1;">
+                {{ op.job_title }}
+              </span>
+              <span style="font-size:0.7rem; color:#64748b; text-transform:capitalize;">
+                {{ op.status }}
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #e2e8f0; padding-top:14px;">
+          <button type="button" class="btn-cancel" @click="showAssignJobModal = false">Cancel</button>
+          <button
+            type="button"
+            class="admin-btn admin-btn-primary"
+            style="background:#4f46e5; padding:9px 20px; font-size:0.86rem;"
+            :disabled="isSavingJobAssign"
+            @click="submitAssignJobs">
+            <i data-lucide="check" style="width:14px; height:14px;"></i>
+            <span>{{ isSavingJobAssign ? 'Saving...' : 'Save Job Assignments' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal to Provision New Recruiter -->
+    <div class="modal-backdrop" v-if="showCreateRecruiterModal" @click.self="showCreateRecruiterModal = false">
+      <div class="profile-modal" style="max-width: 520px; padding: 24px; border-radius: 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="user-plus" style="width:20px; height:20px; color:#2563eb;"></i>
+            <span>Provision Recruiter Account</span>
+          </h3>
+          <button class="btn-close-modal" @click="showCreateRecruiterModal = false">&times;</button>
+        </div>
+
+        <form @submit.prevent="submitCreateRecruiter" style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Recruiter Full Name *</label>
+            <input type="text" class="filter-input" v-model="newRecruiterForm.recruiter_name" required placeholder="e.g. Priya Sharma" style="width:100%; margin-top:4px;">
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Email ID *</label>
+              <input type="email" class="filter-input" v-model="newRecruiterForm.email" required placeholder="recruiter@taskora.com" style="width:100%; margin-top:4px;">
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Login Password *</label>
+                <button 
+                  type="button" 
+                  @click="showCreatePasswordText = !showCreatePasswordText"
+                  style="font-size:0.7rem; color:#2563eb; background:none; border:none; cursor:pointer; font-weight:700; display:inline-flex; align-items:center; gap:3px;"
+                >
+                  <i :data-lucide="showCreatePasswordText ? 'eye-off' : 'eye'" style="width:12px; height:12px;"></i>
+                  <span>{{ showCreatePasswordText ? 'Hide' : 'Show Password' }}</span>
+                </button>
+              </div>
+              <div style="position:relative; margin-top:4px;">
+                <input 
+                  :type="showCreatePasswordText ? 'text' : 'password'" 
+                  class="filter-input" 
+                  v-model="newRecruiterForm.password" 
+                  required 
+                  placeholder="Password" 
+                  style="width:100%; padding-right:36px; font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.92rem; color:#0f172a;"
+                />
+                <button 
+                  type="button" 
+                  @click="showCreatePasswordText = !showCreatePasswordText" 
+                  style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#64748b; display:flex; align-items:center; padding:4px;"
+                >
+                  <i :data-lucide="showCreatePasswordText ? 'eye-off' : 'eye'" style="width:14px; height:14px;"></i>
+                </button>
+              </div>
+              <span style="font-size:0.68rem; color:#64748b; margin-top:2px; display:block;">Admin creates password visible here (default: 123456).</span>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase; display:flex; justify-content:space-between;">
+              <span>Assign Job Openings *</span>
+              <span style="font-size:0.7rem; color:#64748b;">(Select one or multiple)</span>
+            </label>
+            
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; max-height:140px; overflow-y:auto; padding:8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <label 
+                v-for="job in getAvailableJobCodes()" 
+                :key="job.code"
+                :style="{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: isJobSelectedForNewRecruiter(job.code) ? '700' : '500',
+                  background: isJobSelectedForNewRecruiter(job.code) ? '#eff6ff' : '#ffffff',
+                  border: isJobSelectedForNewRecruiter(job.code) ? '1px solid #3b82f6' : '1px solid #cbd5e1',
+                  color: isJobSelectedForNewRecruiter(job.code) ? '#1d4ed8' : '#475569'
+                }"
+                @click.prevent="toggleJobForNewRecruiter(job.code)"
+              >
+                <input 
+                  type="checkbox" 
+                  :checked="isJobSelectedForNewRecruiter(job.code)" 
+                  style="cursor:pointer;"
+                />
+                <span style="font-family:'JetBrains Mono', monospace;">{{ job.code }}</span>
+                <span style="font-size:0.72rem; color:#64748b;" v-if="job.title">({{ job.title.split('|')[0].trim() }})</span>
+              </label>
+            </div>
+
+            <div style="margin-top:6px;">
+              <input 
+                type="text" 
+                class="filter-input" 
+                v-model="newRecruiterForm.assigned_job_id" 
+                placeholder="e.g. J001, J002"
+                style="width:100%; font-family:'JetBrains Mono', monospace; font-size:0.8rem;"
+              />
+              <span style="font-size:0.7rem; color:#64748b; margin-top:2px; display:block;">Comma-separated Job codes (e.g. J001, J002). Selected above automatically.</span>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #e2e8f0; padding-top:14px; margin-top:6px;">
+            <button type="button" class="btn-cancel" @click="showCreateRecruiterModal = false">Cancel</button>
+            <button type="submit" class="admin-btn admin-btn-primary" :disabled="isSubmittingRecruiter">
+              <i data-lucide="user-check" style="width:14px; height:14px;"></i>
+              <span>{{ isSubmittingRecruiter ? 'Provisioning...' : '+ Provision Recruiter' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Modal to Add New Job Opening -->
@@ -3608,13 +5021,67 @@ saveCandidateNotes">
           </div>
 
           <div>
-            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Job ID Code *</label>
-            <input type="text" class="filter-input" v-model="newOpeningForm.job_id" placeholder="e.g. J005" style="width:100%; margin-top:4px;">
+            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Job ID Code</label>
+            <div style="position:relative; margin-top:4px;">
+              <input
+                type="text"
+                class="filter-input"
+                :value="newOpeningForm.job_id"
+                readonly
+                style="width:100%; background:#f8fafc; color:#0f172a; font-family:'JetBrains Mono', monospace; font-weight:800; cursor:default; border-color:#cbd5e1; font-size:0.92rem; letter-spacing:0.05em;"
+              />
+            </div>
           </div>
 
           <div>
-            <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Designation</label>
-            <input type="text" class="filter-input" v-model="newOpeningForm.designation" placeholder="e.g. Sales Manager" style="width:100%; margin-top:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="font-size:0.75rem; font-weight:700; color:#334155; text-transform:uppercase;">Designation *</label>
+              <button 
+                type="button" 
+                @click="showCustomDesignationInput = !showCustomDesignationInput"
+                style="font-size:0.72rem; color:#2563eb; background:none; border:none; cursor:pointer; font-weight:700; display:inline-flex; align-items:center; gap:3px;"
+              >
+                <i data-lucide="plus-circle" style="width:12px; height:12px;"></i>
+                <span>{{ showCustomDesignationInput ? 'Choose from list' : '+ Add Custom Designation' }}</span>
+              </button>
+            </div>
+
+            <!-- Standard Dropdown Selection -->
+            <div v-if="!showCustomDesignationInput" style="margin-top:4px;">
+              <select 
+                class="filter-select" 
+                v-model="newOpeningForm.designation" 
+                @change="onDesignationDropdownChange"
+                style="width:100%; font-size:0.86rem;"
+              >
+                <option value="" disabled>-- Select Designation --</option>
+                <option v-for="d in designationOptions" :key="d" :value="d">{{ d }}</option>
+                <option value="__ADD_NEW__" style="color:#2563eb; font-weight:700;">+ Add New Designation...</option>
+              </select>
+            </div>
+
+            <!-- Custom Designation Input Box with Save & Add -->
+            <div v-if="showCustomDesignationInput" style="margin-top:4px; display:flex; gap:6px;">
+              <input 
+                type="text" 
+                class="filter-input" 
+                v-model="customDesignationText" 
+                placeholder="Enter new designation (e.g. Lead Architect)" 
+                style="flex:1;"
+                @keyup.enter="saveCustomDesignation"
+              />
+              <button 
+                type="button" 
+                class="admin-btn admin-btn-primary" 
+                style="padding:6px 14px; font-size:0.78rem; white-space:nowrap;"
+                @click="saveCustomDesignation"
+              >
+                Save & Add
+              </button>
+            </div>
+            <p v-if="showCustomDesignationInput" style="font-size:0.7rem; color:#64748b; margin-top:2px;">
+              Saved designations are permanently kept in the dropdown list for future openings.
+            </p>
           </div>
 
           <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
@@ -3625,7 +5092,7 @@ saveCandidateNotes">
 
         <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #e2e8f0; padding-top:12px;">
           <button type="button" class="btn-cancel" @click="showNewOpeningModal = false">Cancel</button>
-          <button type="button" class="nav-btn nav-btn-solid" :disabled="isCreatingOpening" @click="submitCreateJobOpening">
+          <button type="button" class="nav-btn nav-btn-solid" style="padding: 9px 20px; font-size: 0.86rem;" :disabled="isCreatingOpening" @click="submitCreateJobOpening">
             <i data-lucide="plus" style="width:13px; height:13px;"></i>
             <span>{{ isCreatingOpening ? 'Creating...' : 'Create Job Opening' }}</span>
           </button>
@@ -3637,7 +5104,7 @@ saveCandidateNotes">
     <div class="modal-backdrop" v-if="showAddApplicantModal" @click.self="showAddApplicantModal = false">
       <div class="profile-modal" style="max-width: 440px; padding: 22px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-          <h3 style="font-size:1.1rem; font-weight:800; color:#0f172a;">+ Add Job Applicant</h3>
+          <h3 style="font-size:1.1rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;"><i data-lucide="user-plus" style="width:18px; height:18px; color:#2563eb;"></i><span>Add Job Applicant</span></h3>
           <button class="btn-close-modal" @click="showAddApplicantModal = false">&times;</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
@@ -3658,7 +5125,7 @@ saveCandidateNotes">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #e2e8f0; padding-top:12px;">
           <button type="button" class="btn-cancel" @click="showAddApplicantModal = false">Cancel</button>
-          <button type="button" class="nav-btn nav-btn-solid" @click="submitAddApplicant">Add Applicant</button>
+          <button type="button" class="nav-btn nav-btn-solid" style="padding: 9px 20px; font-size: 0.86rem;" @click="submitAddApplicant">Add Applicant</button>
         </div>
       </div>
     </div>
@@ -3666,7 +5133,7 @@ saveCandidateNotes">
 {% endraw %}
 
   <script>
-    const { createApp, ref, onMounted, nextTick } = Vue;
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
 
     createApp({
       setup() {
@@ -3691,24 +5158,613 @@ saveCandidateNotes">
         const availableCandidatesCount = ref(0);
 
         // Recruiter Team & Scoped Concurrency State
-        const activeRecruiterJobId = ref(localStorage.getItem('recruiter_job_id') || 'J001');
+        // Admin Control Panel & Recruiter Access State
+        const currentUserState = ref({ is_admin: false, user: '', user_email: '', full_name: 'Authenticating...', assigned_job_id: '', assigned_jobs: [] });
+        const showAssignJobModal = ref(false);
+        const selectedRecruiterForAssign = ref(null);
+        const editJobIds = ref([]);
+        const isSavingJobAssign = ref(false);
+        const activeRecruiterJobFilter = ref('ALL_ASSIGNED');
+
+        const extractJobId = (title) => {
+          if (!title) return 'J001';
+          const m = title.match(/j0*(\d+)/i);
+          return m ? ('J' + m[1].padStart(3, '0')) : 'J001';
+        };
+
+        const openAssignJobModal = (rec) => {
+          selectedRecruiterForAssign.value = rec;
+          if (rec.assigned_jobs && rec.assigned_jobs.length) {
+            editJobIds.value = [...rec.assigned_jobs];
+          } else if (rec.assigned_job_id) {
+            editJobIds.value = rec.assigned_job_id.split(',').map(s => s.trim()).filter(Boolean);
+          } else {
+            editJobIds.value = ['J001'];
+          }
+          showAssignJobModal.value = true;
+          nextTick(() => lucide.createIcons());
+        };
+
+        const submitAssignJobs = async () => {
+          if (!editJobIds.value || editJobIds.value.length === 0) {
+            showToast('Selection Required', 'Please check at least one job opening.', 'error');
+            return;
+          }
+          isSavingJobAssign.value = true;
+          const assignedStr = editJobIds.value.join(', ');
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                email: selectedRecruiterForAssign.value.user_email,
+                assigned_job_id: assignedStr
+              })
+            });
+            const data = await res.json();
+            if (data.message?.success) {
+              showToast('Jobs Assigned', `Successfully assigned ${assignedStr} to ${selectedRecruiterForAssign.value.recruiter_name}`, 'success');
+              showAssignJobModal.value = false;
+              fetchAdminPanelData();
+            } else {
+              showToast('Update Failed', data.message?.message || 'Failed to update jobs', 'error');
+            }
+          } catch(e) {
+            showToast('Error', 'Failed saving job assignments', 'error');
+          } finally {
+            isSavingJobAssign.value = false;
+          }
+        };
+
+        const toggleRecruiterStatus = async (rec) => {
+          const newActive = rec.is_active ? 0 : 1;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                email: rec.user_email,
+                is_active: newActive
+              })
+            });
+            const data = await res.json();
+            if (data.message?.success) {
+              rec.is_active = newActive;
+              showToast('Status Updated', `Recruiter is now ${newActive ? 'Active' : 'Disabled'}`, 'success');
+              fetchAdminPanelData();
+            }
+          } catch(e) {
+            showToast('Error', 'Failed to update status', 'error');
+          }
+        };
+
+        const switchToRole = (role) => {
+          if (role === 'admin') {
+            currentUserState.value = {
+              is_admin: true,
+              user: 'Administrator',
+              user_email: 'Administrator',
+              full_name: 'Administrator (SuperAdmin)',
+              assigned_job_id: 'All',
+              assigned_jobs: []
+            };
+            currentViewMode.value = 'admin';
+            fetchAdminPanelData();
+            showToast('Role Switched', 'Viewing system as SuperAdmin (Full Administrative Oversight)', 'info');
+          } else if (role === 'pooja') {
+            currentUserState.value = {
+              is_admin: false,
+              user: 'recruiter_j001@taskora.com',
+              user_email: 'recruiter_j001@taskora.com',
+              full_name: 'Pooja (Recruiter)',
+              assigned_job_id: 'J001, J002',
+              assigned_jobs: ['J001', 'J002']
+            };
+            activeRecruiterJobFilter.value = 'ALL_ASSIGNED';
+            currentViewMode.value = 'discovery';
+            fetchCandidates();
+            showToast('Role Switched', 'Viewing system as Recruiter Pooja (Assigned to J001 & J002)', 'info');
+          } else if (role === 'rahul') {
+            currentUserState.value = {
+              is_admin: false,
+              user: 'recruiter_j002@taskora.com',
+              user_email: 'recruiter_j002@taskora.com',
+              full_name: 'Rahul (Recruiter)',
+              assigned_job_id: 'J003',
+              assigned_jobs: ['J003']
+            };
+            activeRecruiterJobFilter.value = 'J003';
+            currentViewMode.value = 'discovery';
+            fetchCandidates();
+            showToast('Role Switched', 'Viewing system as Recruiter Rahul (Assigned to J003)', 'info');
+          }
+          nextTick(() => lucide.createIcons());
+        };
+
+        const onRecruiterJobFilterChange = () => {
+          fetchCandidates();
+        };
+        const adminSubTab = ref('recruiters'); // 'recruiters' | 'candidate' | 'oversight'
+        const adminRecruiters = ref([]);
+        const adminOpenings = ref([]);
+        const adminOverview = ref({});
+        const adminJobAnalytics = ref([]);
+        const adminOversightCandidates = ref([]);
+        const oversightSearchQuery = ref('');
+        const isLoadingAdmin = ref(false);
+        const showCreateRecruiterModal = ref(false);
+        const showEditRecruiterModal = ref(false);
+        const isSubmittingRecruiter = ref(false);
+        const isSubmittingCandidate = ref(false);
+
+        const designationOptions = ref([
+          "Analyst", "Senior Analyst", "Business Analyst", "Data Analyst",
+          "Developer", "Senior Software Engineer", "Software Developer", "Technology Lead",
+          "Sales Executive", "Sales Manager", "Territory Sales Manager", "Field Sales Specialist",
+          "HR Director", "HR Manager", "Talent Acquisition Lead", "Recruiter",
+          "Marketing Manager", "Marketing Specialist", "Brand & Content Strategist",
+          "Accountant", "Finance Manager", "Operations Head", "Project Manager"
+        ]);
+        const showCustomDesignationInput = ref(false);
+        const customDesignationText = ref('');
+
+        const loadStoredDesignations = () => {
+          try {
+            const saved = localStorage.getItem('custom_saved_designations');
+            if (saved) {
+              const arr = JSON.parse(saved);
+              if (Array.isArray(arr)) {
+                arr.forEach(item => {
+                  if (item && !designationOptions.value.includes(item)) {
+                    designationOptions.value.push(item);
+                  }
+                });
+              }
+            }
+          } catch(e) {}
+          designationOptions.value.sort();
+        };
+        loadStoredDesignations();
+
+        const onDesignationDropdownChange = () => {
+          if (newOpeningForm.value.designation === '__ADD_NEW__') {
+            newOpeningForm.value.designation = '';
+            showCustomDesignationInput.value = true;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const saveCustomDesignation = async () => {
+          const val = (customDesignationText.value || '').trim();
+          if (!val) {
+            showToast('Input Required', 'Please enter a designation title', 'error');
+            return;
+          }
+          if (!designationOptions.value.includes(val)) {
+            designationOptions.value.push(val);
+            designationOptions.value.sort();
+          }
+          try {
+            const saved = JSON.parse(localStorage.getItem('custom_saved_designations') || '[]');
+            if (!saved.includes(val)) {
+              saved.push(val);
+              localStorage.setItem('custom_saved_designations', JSON.stringify(saved));
+            }
+          } catch(e) {}
+
+          try {
+            await fetch('/api/method/face_attendance.api.add_custom_designation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ designation: val })
+            });
+          } catch(e) {}
+
+          newOpeningForm.value.designation = val;
+          customDesignationText.value = '';
+          showCustomDesignationInput.value = false;
+          showToast('Designation Added', `"${val}" has been saved permanently to options.`, 'success');
+          nextTick(() => lucide.createIcons());
+        };
+
+        const getAvailableJobCodes = () => {
+          const codes = [];
+          const seen = new Set();
+          (adminOpenings.value || []).forEach(op => {
+            const title = op.job_title || op.name || '';
+            const m = title.match(/J\d+/i);
+            let code = m ? m[0].toUpperCase() : op.name;
+            if (m) {
+              const num = parseInt(m[0].replace(/\D/g, ''), 10);
+              code = 'J' + String(num).padStart(3, '0');
+            }
+            if (!seen.has(code)) {
+              seen.add(code);
+              codes.push({ code, title });
+            }
+          });
+          if (codes.length === 0) {
+            ['J001', 'J002', 'J003', 'J004', 'J005', 'J006', 'J007'].forEach(c => codes.push({ code: c, title: c }));
+          }
+          return codes.sort((a, b) => a.code.localeCompare(b.code));
+        };
+
+        const isJobSelectedForNewRecruiter = (code) => {
+          const cur = (newRecruiterForm.value.assigned_job_id || '').toUpperCase();
+          const parts = cur.split(',').map(s => s.trim());
+          return parts.includes(code.toUpperCase());
+        };
+
+        const toggleJobForNewRecruiter = (code) => {
+          const cur = (newRecruiterForm.value.assigned_job_id || '').toUpperCase();
+          let parts = cur.split(',').map(s => s.trim()).filter(Boolean);
+          const upperCode = code.toUpperCase();
+          if (parts.includes(upperCode)) {
+            parts = parts.filter(p => p !== upperCode);
+          } else {
+            parts.push(upperCode);
+          }
+          parts.sort();
+          newRecruiterForm.value.assigned_job_id = parts.join(', ');
+        };
+
+        const releaseLockFromAdmin = async (cand) => {
+          if (!confirm(`Are you sure you want to release all locks on candidate "${cand.candidate_name}"?`)) return;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.release_candidate_atomic', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ candidate_id: cand.name })
+            });
+            const data = (await res.json()).message || {};
+            if (data.success) {
+              showToast('Lock Released', data.message || 'Candidate released successfully', 'success');
+              fetchAdminPanelData();
+            } else {
+              showToast('Action Failed', data.message || 'Could not release lock', 'error');
+            }
+          } catch(e) {
+            showToast('Error', 'Network error releasing candidate lock', 'error');
+          }
+        };
+
+        const inspectJobProfiles = (jid) => {
+          activeRecruiterJobFilter.value = jid;
+          currentViewMode.value = 'discovery';
+          fetchCandidates();
+          showToast('Analyst View', `Inspecting candidate profiles for Job ${jid}`, 'info');
+          nextTick(() => lucide.createIcons());
+        };
+
+        const filteredOversightCandidates = computed(() => {
+          const q = (oversightSearchQuery.value || '').trim().toLowerCase();
+          if (!q) return adminOversightCandidates.value;
+          return adminOversightCandidates.value.filter(c => {
+            const name = (c.candidate_name || '').toLowerCase();
+            const pos = (c.position_applied || '').toLowerCase();
+            const locks = JSON.stringify(c.parsed_locks || c.job_locks || '').toLowerCase();
+            const rec = (c.selected_by || '').toLowerCase();
+            const jid = (c.selected_job_id || '').toLowerCase();
+            return name.includes(q) || pos.includes(q) || locks.includes(q) || rec.includes(q) || jid.includes(q);
+          });
+        });
+
+        const newRecruiterForm = ref({
+          recruiter_name: '',
+          email: '',
+          password: '123456',
+          assigned_job_id: 'J001'
+        });
+
+        const editRecruiterForm = ref(null);
+        const adminCandForm = ref({
+          candidate_name: '',
+          position_applied: '',
+          current_location: '',
+          experience_years: 0,
+          expected_ctc: 0,
+          phone: '',
+          email: '',
+          profile_tags: '',
+          resume_url: ''
+        });
+
+        const fetchAuthState = async () => {
+          try {
+            const res = await fetch('/api/method/face_attendance.api.get_auth_state');
+            const data = (await res.json()).message || {};
+            currentUserState.value = data;
+            if (!data.is_admin) {
+              currentViewMode.value = 'discovery';
+              if (data.assigned_jobs && data.assigned_jobs.length) {
+                activeRecruiterJobFilter.value = 'ALL_ASSIGNED';
+                activeRecruiterJobId.value = data.assigned_jobs.join(',');
+                kanbanFilterJobId.value = data.assigned_jobs[0];
+              } else if (data.assigned_job_id) {
+                activeRecruiterJobFilter.value = data.assigned_job_id;
+                activeRecruiterJobId.value = data.assigned_job_id;
+                kanbanFilterJobId.value = data.assigned_job_id;
+              }
+            } else {
+              // Admin session
+              activeRecruiterJobId.value = 'All';
+              kanbanFilterJobId.value = 'All';
+            }
+          } catch(e) {}
+          nextTick(() => lucide.createIcons());
+        };
+
+        const fetchAdminPanelData = async () => {
+          if (!currentUserState.value.is_admin) return;
+          isLoadingAdmin.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.get_admin_panel_data');
+            const data = (await res.json()).message || {};
+            if (data.success) {
+              adminRecruiters.value = data.recruiters || [];
+              adminOpenings.value = data.job_openings || [];
+              adminOverview.value = data.overview || {};
+              adminJobAnalytics.value = data.job_analytics || [];
+              adminOversightCandidates.value = data.oversight_candidates || [];
+              if (data.designations && data.designations.length > 0) {
+                data.designations.forEach(d => {
+                  if (d && !designationOptions.value.includes(d)) {
+                    designationOptions.value.push(d);
+                  }
+                });
+                designationOptions.value.sort();
+              }
+            }
+          } catch(e) {
+          } finally {
+            isLoadingAdmin.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const openAdminPanelView = () => {
+          currentViewMode.value = 'admin';
+          fetchAdminPanelData();
+          nextTick(() => lucide.createIcons());
+        };
+
+        const submitCreateRecruiter = async () => {
+          isSubmittingRecruiter.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.create_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newRecruiterForm.value)
+            });
+            const data = (await res.json()).message || {};
+            if (data.success) {
+              showToast('Account Created', data.message, 'success');
+              showCreateRecruiterModal.value = false;
+              newRecruiterForm.value = { recruiter_name: '', email: '', password: '123456', assigned_job_id: 'J001' };
+              fetchAdminPanelData();
+            } else {
+              showToast('Creation Failed', data.message || 'Error creating account', 'error');
+            }
+          } catch(e) {
+            showToast('Error', 'Network or server error while creating recruiter', 'error');
+          } finally {
+            isSubmittingRecruiter.value = false;
+          }
+        };
+
+        const openEditRecruiterModal = (rec) => {
+          editRecruiterForm.value = { ...rec, new_password: '' };
+          showEditRecruiterModal.value = true;
+        };
+
+        const openResetPasswordModal = (rec) => {
+          editRecruiterForm.value = { ...rec, new_password: '123456' };
+          showEditRecruiterModal.value = true;
+        };
+
+        const submitEditRecruiter = async () => {
+          isSubmittingRecruiter.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: editRecruiterForm.value.user_email,
+                recruiter_name: editRecruiterForm.value.recruiter_name,
+                assigned_job_id: editRecruiterForm.value.assigned_job_id,
+                is_active: editRecruiterForm.value.is_active,
+                new_password: editRecruiterForm.value.new_password
+              })
+            });
+            const data = (await res.json()).message || {};
+            if (data.success) {
+              showToast('Profile Updated', data.message, 'success');
+              showEditRecruiterModal.value = false;
+              fetchAdminPanelData();
+            } else {
+              showToast('Update Failed', data.message, 'error');
+            }
+          } catch(e) {
+            showToast('Error', 'Failed updating recruiter', 'error');
+          } finally {
+            isSubmittingRecruiter.value = false;
+          }
+        };
+
+        const submitAdminCandidate = async () => {
+          isSubmittingCandidate.value = true;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.admin_create_candidate_profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(adminCandForm.value)
+            });
+            const data = (await res.json()).message || {};
+            if (data.success) {
+              showToast('Candidate Registered', data.message, 'success');
+              adminCandForm.value = { candidate_name: '', position_applied: '', current_location: '', experience_years: 0, expected_ctc: 0, phone: '', email: '', profile_tags: '', resume_url: '' };
+              triggerSearch(1);
+            } else {
+              showToast('Registration Error', data.message, 'error');
+            }
+          } catch(e) {
+            showToast('Error', 'Network error registering candidate', 'error');
+          } finally {
+            isSubmittingCandidate.value = false;
+          }
+        };
+
+        
+        const savedAcc = localStorage.getItem('active_recruiter_account') || 'Administrator';
+        const currentLoggedInUser = ref(savedAcc);
+        currentUserState.value = {
+          is_admin: savedAcc === 'Administrator',
+          user: savedAcc,
+          assigned_job_id: savedAcc === 'recruiter_j001@taskora.com' ? 'J001' : (savedAcc === 'recruiter_j002@taskora.com' ? 'J002' : 'All')
+        };
+        const activeRecruiterJobId = ref(
+          currentLoggedInUser.value === 'recruiter_j001@taskora.com' ? 'J001' : 
+          (currentLoggedInUser.value === 'recruiter_j002@taskora.com' ? 'J002' : 'All')
+        );
+
+        const switchAccount = async (accountEmail) => {
+          currentLoggedInUser.value = accountEmail;
+          localStorage.setItem('active_recruiter_account', accountEmail);
+
+          if (accountEmail === 'recruiter_j001@taskora.com') {
+            currentUserState.value = { is_admin: false, user: 'recruiter_j001@taskora.com', full_name: 'Recruiter J001 (Pooja)', assigned_job_id: 'J001' };
+            activeRecruiterJobId.value = 'J001';
+            kanbanFilterJobId.value = 'J001';
+            if (currentViewMode.value === 'admin') currentViewMode.value = 'discovery';
+            try {
+              await fetch('/api/method/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usr: 'recruiter_j001@taskora.com', pwd: '123456' })
+              });
+            } catch(e) {}
+            showToast('Account Switched', 'Logged in as Recruiter J001 (Pooja). Showing J001 Job Pipeline.', 'success');
+          } else if (accountEmail === 'recruiter_j002@taskora.com') {
+            currentUserState.value = { is_admin: false, user: 'recruiter_j002@taskora.com', full_name: 'Recruiter J002 (Rahul)', assigned_job_id: 'J002' };
+            activeRecruiterJobId.value = 'J002';
+            kanbanFilterJobId.value = 'J002';
+            if (currentViewMode.value === 'admin') currentViewMode.value = 'discovery';
+            try {
+              await fetch('/api/method/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usr: 'recruiter_j002@taskora.com', pwd: '123456' })
+              });
+            } catch(e) {}
+            showToast('Account Switched', 'Logged in as Recruiter J002 (Rahul). Showing J002 Job Pipeline.', 'success');
+          } else {
+            currentUserState.value = { is_admin: true, user: 'Administrator', full_name: 'Administrator (Superuser)', assigned_job_id: 'All' };
+            activeRecruiterJobId.value = 'All';
+            kanbanFilterJobId.value = 'All';
+            try {
+              await fetch('/api/method/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usr: 'Administrator', pwd: 'admin' })
+              });
+            } catch(e) {}
+            showToast('Account Switched', 'Active Account: Administrator (Full Access).', 'success');
+          }
+
+          nextTick(() => lucide.createIcons());
+          triggerSearch(1);
+          if (currentViewMode.value === 'kanban') {
+            fetchKanbanBoard();
+          } else if (currentViewMode.value === 'admin') {
+            fetchAdminPanelData();
+          }
+        };
         const currentViewMode = ref('discovery'); // 'discovery' | 'kanban'
         const jobOpenings = ref([]);
+        const activeOpenings = ref([]);
         const jobLockCounts = ref({ J001: 0, J002: 0 });
         const kanbanColumns = ref([]);
         const kanbanFilterJobId = ref('All');
         const kanbanTotalCards = ref(0);
         const isLoadingKanban = ref(false);
         const customJobIdInput = ref('');
+        const kanbanSearchQuery = ref('');
+
+        const getFilteredCards = (cards) => {
+          if (!cards) return [];
+          let scoped = cards;
+          if (!currentUserState.value.is_admin) {
+            const myJobs = currentUserState.value.assigned_jobs || (currentUserState.value.assigned_job_id ? currentUserState.value.assigned_job_id.split(',').map(s => s.trim().toUpperCase()) : []);
+            if (myJobs.length) {
+              if (activeRecruiterJobFilter.value && activeRecruiterJobFilter.value !== 'ALL_ASSIGNED') {
+                scoped = scoped.filter(c => (c.job_id || '').toUpperCase() === activeRecruiterJobFilter.value);
+              } else {
+                scoped = scoped.filter(c => myJobs.includes((c.job_id || '').toUpperCase()));
+              }
+            }
+          }
+          const q = (kanbanSearchQuery.value || '').trim().toLowerCase();
+          if (!q) return scoped;
+          return scoped.filter(c => 
+            (c.candidate_name || '').toLowerCase().includes(q) ||
+            (c.job_id || '').toLowerCase().includes(q) ||
+            (c.role || '').toLowerCase().includes(q) ||
+            (c.location || '').toLowerCase().includes(q)
+          );
+        };
+
+        const getShortRecruiterName = (fullName) => {
+          if (!fullName) return '';
+          const clean = fullName.split('(')[0].trim();
+          const parts = clean.split(' ');
+          if (parts.length > 1) {
+            return `${parts[0]} ${parts[1][0]}.`;
+          }
+          return clean;
+        };
+
+        const activeOpeningsList = computed(() => {
+          if (activeOpenings.value && activeOpenings.value.length) {
+            return activeOpenings.value;
+          }
+          if (allOpenings.value && allOpenings.value.length) {
+            return allOpenings.value.filter(o => o.status === 'Open');
+          }
+          if (jobOpenings.value && jobOpenings.value.length) {
+            return jobOpenings.value.filter(o => o.status === 'Open');
+          }
+          return [];
+        });
+
+        const getJobLockStatus = (cand, jid) => {
+          if (!cand || !cand.job_locks) return null;
+          const norm = (jid || '').toUpperCase();
+          const normLower = (jid || '').toLowerCase();
+          return cand.job_locks[norm] || cand.job_locks[normLower] || null;
+        };
+
+        const filterOnlyMyJob = ref(false);
+        const toggleOnlyMyJob = () => {
+          filterOnlyMyJob.value = !filterOnlyMyJob.value;
+          currentPage.value = 1;
+          triggerSearch(1);
+        };
 
         const setRecruiterJobId = (jid) => {
           activeRecruiterJobId.value = jid;
+          kanbanFilterJobId.value = jid;
           localStorage.setItem('recruiter_job_id', jid);
+          currentPage.value = 1;
           triggerSearch(1);
           if (currentViewMode.value === 'kanban') {
             fetchKanbanBoard();
           }
-          showToast('Recruiter Workspace Switched', `Active recruiter team set to: ${jid}. Candidates claimed will lock for ${jid} and stay open for other Job IDs.`, 'info');
+          if (jid === 'All') {
+            filterOnlyMyJob.value = false;
+            showToast('Administrator Scope', 'Viewing across all Job IDs. All available candidates can be assigned.', 'info');
+          } else {
+            showToast('Recruiter Team Switched', `Active recruiter team set to: ${jid}. Candidates locked for ${jid} are locked for your team, but candidates locked only for other jobs remain open and available for you!`, 'success');
+          }
         };
 
         const fetchJobOpenings = async () => {
@@ -3725,7 +5781,15 @@ saveCandidateNotes">
           isLoadingKanban.value = true;
           try {
             const params = new URLSearchParams();
-            if (kanbanFilterJobId.value && kanbanFilterJobId.value !== 'All') {
+            if (!currentUserState.value.is_admin) {
+              if (activeRecruiterJobFilter.value && activeRecruiterJobFilter.value !== 'ALL_ASSIGNED') {
+                params.append('job_id', activeRecruiterJobFilter.value);
+              } else if (currentUserState.value.assigned_jobs && currentUserState.value.assigned_jobs.length) {
+                params.append('job_id', currentUserState.value.assigned_jobs.join(','));
+              } else if (currentUserState.value.assigned_job_id) {
+                params.append('job_id', currentUserState.value.assigned_job_id);
+              }
+            } else if (kanbanFilterJobId.value && kanbanFilterJobId.value !== 'All') {
               params.append('job_id', kanbanFilterJobId.value);
             }
             const res = await fetch(`/api/method/face_attendance.api.get_applicant_kanban_board?${params.toString()}`);
@@ -3900,6 +5964,40 @@ saveCandidateNotes">
         const editMsg = ref('');
         const editSuccess = ref(false);
 
+                const visibleOpenings = computed(() => {
+          if (currentUserState.value.is_admin) {
+            return allOpenings.value;
+          }
+          const rawJobs = currentUserState.value.assigned_jobs && currentUserState.value.assigned_jobs.length
+            ? currentUserState.value.assigned_jobs
+            : (currentUserState.value.assigned_job_id ? currentUserState.value.assigned_job_id.split(',') : []);
+          const myJobs = rawJobs.map(s => s.trim().toUpperCase()).filter(Boolean);
+          if (!myJobs.length) return allOpenings.value;
+          return allOpenings.value.filter(op => {
+            const jid = (op.job_id || extractJobId(op.job_title)).toUpperCase();
+            return myJobs.includes(jid);
+          });
+        });
+
+        const showJobRecruitersModal = ref(false);
+        const selectedJobForRecruiterView = ref(null);
+
+        const getRecruitersForJob = (jobId) => {
+          if (!jobId) return [];
+          const target = jobId.toUpperCase().trim();
+          return adminRecruiters.value.filter(r => {
+            const jobs = (r.assigned_jobs || (r.assigned_job_id ? r.assigned_job_id.split(', ') : [])).map(j => j.toUpperCase().trim());
+            return jobs.includes(target);
+          });
+        };
+
+        const openJobRecruitersModal = (job) => {
+          selectedJobForRecruiterView.value = job;
+          adminFilterJobId.value = job.job_id;
+          showJobRecruitersModal.value = true;
+          nextTick(() => lucide.createIcons());
+        };
+
         const fetchCandidates = async () => {
           isLoading.value = true;
           try {
@@ -3929,6 +6027,11 @@ saveCandidateNotes">
               params.append('recruiter_job_id', activeRecruiterJobId.value);
             }
 
+            // Filter to only my team candidates if toggled
+            if (filterOnlyMyJob.value && activeRecruiterJobId.value !== 'All') {
+              params.append('filter_job_id', activeRecruiterJobId.value);
+            }
+
             // Tab View Filter
             if (activeViewTab.value === 'available') {
               params.append('filter_selection_status', 'Available');
@@ -3956,6 +6059,9 @@ saveCandidateNotes">
             selectedCandidatesCount.value = data.selected_candidates_count || 0;
             availableCandidatesCount.value = data.available_candidates_count || 0;
             jobLockCounts.value = data.job_lock_counts || { J001: 0, J002: 0 };
+            if (data.active_openings && data.active_openings.length) {
+              activeOpenings.value = data.active_openings;
+            }
 
             if (data.aggregations) {
               availableTags.value = data.aggregations.tags || [];
@@ -4058,10 +6164,12 @@ saveCandidateNotes">
           selectForm.value.location = candCity;
           selectForm.value.role = cand.position_applied || 'Analyst';
 
-          let targetJobId = activeRecruiterJobId.value !== 'All' ? activeRecruiterJobId.value : 'J001';
-          const locks = cand.job_locks || {};
-          if (locks[targetJobId] && !locks['J002']) {
-            targetJobId = 'J002';
+          let targetJobId = currentUserState.value.assigned_job_id || (activeRecruiterJobId.value !== 'All' ? activeRecruiterJobId.value : 'J001');
+          if (currentUserState.value.is_admin) {
+            const locks = cand.job_locks || {};
+            if (locks[targetJobId] && !locks['J002']) {
+              targetJobId = 'J002';
+            }
           }
           selectForm.value.selected_job_id = targetJobId;
 
@@ -4105,8 +6213,8 @@ saveCandidateNotes">
         const submitCandidateClaim = async () => {
           if (!modalCandidate.value) return;
           const f = selectForm.value;
-          const targetJid = f.selected_job_id === 'CUSTOM' ? (customJobIdInput.value.trim() || 'CUSTOM') : (f.selected_job_id || activeRecruiterJobId.value || 'J001');
-          const recruiterName = f.recruiter_name?.trim() || localStorage.getItem('candidate_recruiter_name') || 'Rudra Radadiya';
+          const targetJid = (!currentUserState.value.is_admin && currentUserState.value.assigned_job_id) ? currentUserState.value.assigned_job_id : (f.selected_job_id === 'CUSTOM' ? (customJobIdInput.value.trim() || 'CUSTOM') : (f.selected_job_id || activeRecruiterJobId.value || 'J001'));
+          const recruiterName = (!currentUserState.value.is_admin && currentUserState.value.full_name) ? currentUserState.value.full_name : (f.recruiter_name?.trim() || localStorage.getItem('candidate_recruiter_name') || 'Recruiter');
           const candCity = modalCandidate.value.current_location?.trim() || 'Patna';
           const candRole = modalCandidate.value.position_applied?.trim() || 'Analyst';
           const groupName = `${targetJid} - ${candCity} ${candRole} Drive`;
@@ -4154,7 +6262,7 @@ saveCandidateNotes">
         };
 
         // --- NEW FEATURES: Test Kanban Board, Recruitment Dashboard & Job Openings State ---
-        const kanbanTheme = ref('dark');
+        const kanbanTheme = ref('light');
         const dashKpis = ref({});
         const dashJobDist = ref({});
         const dashRecruiters = ref([]);
@@ -4242,14 +6350,23 @@ saveCandidateNotes">
           }
         };
 
-        const openCreateOpeningModal = () => {
+        const openCreateOpeningModal = async () => {
+          let nextJid = 'J00' + (allOpenings.value.length + 1);
+          try {
+            const res = await fetch('/api/method/face_attendance.api.get_next_job_id');
+            const json = await res.json();
+            if (json.message?.success && json.message?.next_job_id) {
+              nextJid = json.message.next_job_id;
+            }
+          } catch(e) {}
           newOpeningForm.value = { 
             job_title: '', 
-            job_id: 'J00' + (allOpenings.value.length + 1), 
+            job_id: nextJid, 
             designation: 'Analyst', 
             publish: true 
           };
           showNewOpeningModal.value = true;
+          nextTick(() => lucide.createIcons());
         };
 
         const submitCreateJobOpening = async () => {
@@ -4419,11 +6536,12 @@ saveCandidateNotes">
         };
 
         const getUniqueTags = (tags) => {
-          if (!tags || !Array.isArray(tags)) return [];
+          if (!tags) return [];
+          const list = Array.isArray(tags) ? tags : String(tags).split(',');
           const seen = new Set();
           const clean = [];
           const junk = new Set(['-', '--', 'n/a', 'na', 'none', 'null', 'workindia', 'candidate', 'job', 'portal', '+', 'other']);
-          for (const t of tags) {
+          for (const t of list) {
             if (!t) continue;
             const str = String(t).trim().replace(/^[^\w]+|[^\w]+$/g, '');
             const lower = str.toLowerCase();
@@ -4439,14 +6557,96 @@ saveCandidateNotes">
           return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         };
 
+        const closeCandidateProfile = () => {
+          showProfileModal.value = false;
+          selectedCandidate.value = null;
+        };
+
+        const closeEditModal = () => {
+          showEditModal.value = false;
+          editForm.value = null;
+        };
+
+        const updateStatus = async (cand, newStatus) => {
+          if (!cand || !newStatus) return;
+          const oldStatus = cand.status;
+          cand.status = newStatus;
+          try {
+            const res = await fetch('/api/method/face_attendance.api.update_job_candidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                candidate_id: cand.name,
+                status: newStatus
+              })
+            });
+            const json = await res.json();
+            if (json.message?.success) {
+              showToast('Status Updated', `${cand.candidate_name} marked as ${newStatus}`, 'success');
+              if (selectedCandidate.value && selectedCandidate.value.name === cand.name) {
+                selectedCandidate.value.status = newStatus;
+              }
+            } else {
+              cand.status = oldStatus;
+              showToast('Error', json.message?.message || 'Could not update status', 'error');
+            }
+          } catch(e) {
+            cand.status = oldStatus;
+            showToast('Error', 'Network error updating candidate status', 'error');
+          }
+        };
+
+        const showCreatePasswordText = ref(true);
+        const adminFilterJobId = ref(null);
+
+        const toggleAdminJobFilter = (jid) => {
+          if (adminFilterJobId.value === jid) {
+            adminFilterJobId.value = null;
+          } else {
+            adminFilterJobId.value = jid;
+          }
+        };
+
+        const recruiterSearchQuery = ref('');
+        const displayedAdminRecruiters = computed(() => {
+          let list = adminRecruiters.value;
+          if (adminFilterJobId.value) {
+            const targetJid = adminFilterJobId.value.toUpperCase();
+            list = list.filter(r => {
+              const jobs = (r.assigned_jobs || (r.assigned_job_id ? r.assigned_job_id.split(', ') : [])).map(j => j.toUpperCase().trim());
+              return jobs.includes(targetJid);
+            });
+          }
+          if (recruiterSearchQuery.value && recruiterSearchQuery.value.trim()) {
+            const q = recruiterSearchQuery.value.trim().toLowerCase();
+            list = list.filter(r => {
+              const name = (r.recruiter_name || '').toLowerCase();
+              const email = (r.user_email || '').toLowerCase();
+              const jobs = (r.assigned_job_id || '').toLowerCase();
+              return name.includes(q) || email.includes(q) || jobs.includes(q);
+            });
+          }
+          return list;
+        });
+
         const openCandidateProfile = (cand) => {
-          selectedCandidate.value = cand;
+          if (!cand) return;
+          const phone = cand.phone || '';
+          const cleanPhone = phone.replace(/[^0-9]/g, '');
+          const tags = (cand.tags_list && cand.tags_list.length) ? cand.tags_list : getUniqueTags(cand.profile_tags || '');
+          selectedCandidate.value = {
+            ...cand,
+            clean_phone: cand.clean_phone || cleanPhone,
+            tags_list: tags,
+            salary_display: (cand.salary_display && cand.salary_display !== 'Disclosed') ? cand.salary_display : (cand.expected_ctc ? '₹ ' + Number(cand.expected_ctc).toLocaleString('en-IN') : 'Not Disclosed')
+          };
           editNotes.value = cand.hr_notes || '';
           notesMsg.value = '';
           modalTab.value = 'dossier';
           showProfileModal.value = true;
           nextTick(() => lucide.createIcons());
         };
+
 
         const saveNotes = async () => {
           if (!selectedCandidate.value) return;
@@ -4563,10 +6763,15 @@ saveCandidateNotes">
           }
         };
 
-        onMounted(() => {
+        onMounted(async () => {
+          await fetchAuthState();
           fetchCandidates();
           fetchJobOpenings();
+          fetchAllOpenings();
           fetchKanbanBoard();
+          if (currentUserState.value.is_admin) {
+            fetchAdminPanelData();
+          }
           setInterval(silentPollCandidates, 8000);
           nextTick(() => lucide.createIcons());
         });
@@ -4671,6 +6876,73 @@ saveCandidateNotes">
           formatSelectedDate,
           // Recruiter Team & Scoped Concurrency
           activeRecruiterJobId,
+          currentUserState,
+          adminSubTab,
+          adminRecruiters,
+          adminOpenings,
+          adminOverview,
+          isLoadingAdmin,
+          showCreateRecruiterModal,
+          showEditRecruiterModal,
+          isSubmittingRecruiter,
+          isSubmittingCandidate,
+          newRecruiterForm,
+          editRecruiterForm,
+          adminCandForm,
+          visibleOpenings,
+          fetchAdminPanelData,
+          showAssignJobModal,
+          selectedRecruiterForAssign,
+          editJobIds,
+          isSavingJobAssign,
+          activeRecruiterJobFilter,
+          extractJobId,
+          openAssignJobModal,
+          submitAssignJobs,
+          toggleRecruiterStatus,
+          switchToRole,
+          onRecruiterJobFilterChange,
+          openAdminPanelView,
+          submitCreateRecruiter,
+          openEditRecruiterModal,
+          openResetPasswordModal,
+          submitEditRecruiter,
+          submitAdminCandidate,
+          saveCandidateNotes: saveNotes,
+          saveCandidateProfile: saveCandidateEdit,
+          closeCandidateProfile,
+          closeEditModal,
+          updateStatus,
+          confirmDeleteAll: deleteAllCandidates,
+          showCreatePasswordText,
+          adminFilterJobId,
+          toggleAdminJobFilter,
+          displayedAdminRecruiters,
+          showJobRecruitersModal,
+          selectedJobForRecruiterView,
+          getRecruitersForJob,
+          openJobRecruitersModal,
+          recruiterSearchQuery,
+          submitAdminCandidate,
+          submitDirectCandidate: submitAdminCandidate,
+          adminJobAnalytics,
+          adminOversightCandidates,
+          oversightSearchQuery,
+          filteredOversightCandidates,
+          designationOptions,
+          showCustomDesignationInput,
+          customDesignationText,
+          onDesignationDropdownChange,
+          saveCustomDesignation,
+          getAvailableJobCodes,
+          isJobSelectedForNewRecruiter,
+          toggleJobForNewRecruiter,
+          releaseLockFromAdmin,
+          inspectJobProfiles,
+          currentLoggedInUser,
+          switchAccount,
+          filterOnlyMyJob,
+          toggleOnlyMyJob,
           setRecruiterJobId,
           jobOpenings,
           jobLockCounts,
@@ -4679,13 +6951,19 @@ saveCandidateNotes">
           kanbanFilterJobId,
           kanbanTotalCards,
           isLoadingKanban,
+          kanbanSearchQuery,
+          getFilteredCards,
+          getShortRecruiterName,
           customJobIdInput,
           openKanbanView,
           fetchKanbanBoard,
           moveKanbanCard,
           onModalJobIdChange,
           isCandidateLockedForJob,
-          getCandidateLockBy
+          getCandidateLockBy,
+          activeOpenings,
+          activeOpeningsList,
+          getJobLockStatus
         };
       }
     }).mount('#app');

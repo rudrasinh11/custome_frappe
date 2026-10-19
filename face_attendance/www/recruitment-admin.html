@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talent Operations & Recruiter Provisioning Admin Portal</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #0b0f19;
+      --bg-card: #111827;
+      --bg-card-subtle: #1e293b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #6366f1;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* TOP COMMAND HEADER */
+    .admin-nav {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #9333ea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+      color: white;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-text h1 span.badge-admin {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      letter-spacing: 0.05em;
+    }
+
+    .brand-text p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .nav-btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      border-color: var(--border-subtle);
+    }
+
+    .nav-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-btn-primary {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .nav-btn-primary:hover {
+      background: linear-gradient(135deg, #4338ca, #4f46e5);
+      transform: translateY(-1px);
+    }
+
+    /* MAIN CONTAINER */
+    .admin-main {
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      flex: 1;
+    }
+
+    /* STATS STRIP */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .stat-info p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .stat-info h3 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.04);
+      color: #818cf8;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* SUB TABS */
+    .admin-tabs-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .tab-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    /* CARDS & TABLES */
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .card-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .card-head h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-head p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    .custom-table th {
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .custom-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+      vertical-align: middle;
+    }
+
+    .custom-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* BADGES */
+    .job-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.03em;
+    }
+
+    .pill-j001 {
+      background: rgba(14, 165, 233, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(14, 165, 233, 0.3);
+    }
+
+    .pill-j002 {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .pill-j003 {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .pill-generic {
+      background: rgba(100, 116, 139, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+
+    .badge-active {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .badge-inactive {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .action-btn-sm {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      transition: all 0.15s ease;
+    }
+
+    .action-btn-sm:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* MODAL SYSTEM */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-window {
+      background: #131b2e;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 30px rgba(99, 102, 241, 0.15);
+      overflow: hidden;
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modal-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .modal-close-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: #0b0f19;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      color: white;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    /* TOAST ALERTS */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast-card {
+      background: #1e293b;
+      border: 1px solid var(--border-subtle);
+      color: white;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      animation: toastIn 0.25s ease-out;
+    }
+
+    .toast-success {
+      border-left: 4px solid #10b981;
+    }
+
+    .toast-error {
+      border-left: 4px solid #ef4444;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(15px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  
+
+  {% raw %}
+  <div id="app">
+    
+    <!-- TOP COMMAND HEADER -->
+    <header class="admin-nav">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="brand-text">
+          <h1>
+            Taskora Talent Ops Admin
+            <span class="badge-admin">Superuser Control Hub</span>
+          </h1>
+          <p>Multi-Job Recruiter Provisioning & Enterprise Pipeline Governance</p>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Direct links -->
+        <a href="/candidate-search" class="nav-btn nav-btn-secondary" title="Switch to Recruiter Talent Search">
+          <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+          <span>Recruiter Sourcing Portal</span>
+        </a>
+
+        <a href="/app" class="nav-btn nav-btn-secondary" title="Open Frappe Desk">
+          <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
+          <span>Frappe Desk</span>
+        </a>
+
+        <button type="button" class="nav-btn nav-btn-primary" @click="openCreateRecruiterModal">
+          <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+          <span>+ Provision Recruiter</span>
+        </button>
+
+        <button type="button" class="nav-btn nav-btn-secondary" @click="openAddCandidateModal">
+          <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+          <span>+ Add Candidate</span>
+        </button>
+
+        <a href="/login" class="nav-btn nav-btn-secondary" style="color: #f87171;" title="Sign out current session">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="admin-main">
+      
+      <!-- TOP METRIC CARDS -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <p>Provisioned Recruiters</p>
+            <h3>{{ stats.total_recruiters }}</h3>
+          </div>
+          <div class="stat-icon">
+            <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <p>Active Job Openings</p>
+            <h3>{{ stats.total_openings }}</h3>
+          </div>
+          <div class="stat-icon">
+            <i data-lucide="briefcase" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <p>Total Sourced Candidates</p>
+            <h3>{{ stats.total_candidates }}</h3>
+          </div>
+          <div class="stat-icon">
+            <i data-lucide="user-check" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <p>Active Job Locks / Pipeline</p>
+            <h3 style="color: #818cf8;">{{ stats.selected_candidates }}</h3>
+          </div>
+          <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
+            <i data-lucide="lock" style="width: 20px; height: 20px;"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- NAVIGATION TABS -->
+      <div class="admin-tabs-bar">
+        <div class="tab-nav-group">
+          <button 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: currentTab === 'recruiters' }" 
+            @click="currentTab = 'recruiters'">
+            <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
+            <span>Recruiter Provisioning & Scopes</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: currentTab === 'oversight' }" 
+            @click="currentTab = 'oversight'">
+            <i data-lucide="network" style="width: 16px; height: 16px;"></i>
+            <span>Cross-Job Concurrency Oversight</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: currentTab === 'candidate_add' }" 
+            @click="currentTab = 'candidate_add'">
+            <i data-lucide="file-plus" style="width: 16px; height: 16px;"></i>
+            <span>Direct Candidate Registration</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: currentTab === 'openings' }" 
+            @click="currentTab = 'openings'">
+            <i data-lucide="layers" style="width: 16px; height: 16px;"></i>
+            <span>Job Openings Directory</span>
+          </button>
+        </div>
+
+        <div>
+          <button type="button" class="action-btn-sm" @click="refreshData">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+            <span>Refresh Live Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: RECRUITER PROVISIONING -->
+      <section v-show="currentTab === 'recruiters'">
+        <div class="panel-card">
+          <div class="card-head">
+            <div>
+              <h2>
+                <i data-lucide="shield" style="width: 18px; height: 18px; color: #818cf8;"></i>
+                <span>Provisioned Recruiter Accounts & Job Access Scoping</span>
+              </h2>
+              <p>Each recruiter is strictly scoped to their assigned Job ID (e.g. Pooja &rarr; J001, Rahul &rarr; J002). Recruiters only access candidates and openings in their scope.</p>
+            </div>
+            <div>
+              <button type="button" class="nav-btn nav-btn-primary" @click="openCreateRecruiterModal">
+                <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                <span>Provision New Recruiter</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Recruiter Name</th>
+                  <th>Login Email</th>
+                  <th>Assigned Job Scope</th>
+                  <th>Assigned Job Opening</th>
+                  <th>Candidates Claimed</th>
+                  <th>Account Status</th>
+                  <th style="text-align: right;">Administrative Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in recruiters" :key="r.user_email">
+                  <td style="font-weight: 600; color: white;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="width: 28px; height: 28px; border-radius: 50%; background: #3730a3; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; color: white;">
+                        {{ getInitials(r.recruiter_name) }}
+                      </div>
+                      <span>{{ r.recruiter_name }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #94a3b8;">
+                      {{ r.user_email }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="job-pill" :class="getJobPillClass(r.assigned_job_id)">
+                      <i data-lucide="lock" style="width: 10px; height: 10px;"></i>
+                      {{ r.assigned_job_id }}
+                    </span>
+                  </td>
+                  <td>
+                    <span style="font-size: 0.82rem; color: #cbd5e1;">
+                      {{ getJobOpeningTitle(r.assigned_job_id) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span style="font-weight: 700; color: #818cf8;">
+                      {{ r.total_candidates || 0 }} candidates
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge" :class="r.is_active ? 'badge-active' : 'badge-inactive'">
+                      <i :data-lucide="r.is_active ? 'check-circle' : 'x-circle'" style="width: 12px; height: 12px;"></i>
+                      {{ r.is_active ? 'Active' : 'Disabled' }}
+                    </span>
+                  </td>
+                  <td style="text-align: right;">
+                    <div style="display: inline-flex; gap: 8px;">
+                      <button type="button" class="action-btn-sm" @click="editRecruiter(r)" title="Change Job ID or details">
+                        <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
+                        <span>Edit Scope</span>
+                      </button>
+                      <button type="button" class="action-btn-sm" @click="openResetPasswordModal(r)" title="Reset password">
+                        <i data-lucide="key" style="width: 12px; height: 12px;"></i>
+                        <span>Reset Pwd</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        class="action-btn-sm" 
+                        :style="r.is_active ? 'color: #f87171;' : 'color: #34d399;'"
+                        @click="toggleRecruiterStatus(r)">
+                        <i :data-lucide="r.is_active ? 'slash' : 'check'" style="width: 12px; height: 12px;"></i>
+                        <span>{{ r.is_active ? 'Disable' : 'Enable' }}</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CROSS-JOB CONCURRENCY OVERSIGHT -->
+      <section v-show="currentTab === 'oversight'">
+        <div class="panel-card">
+          <div class="card-head">
+            <div>
+              <h2>
+                <i data-lucide="network" style="width: 18px; height: 18px; color: #818cf8;"></i>
+                <span>Cross-Job Candidate Concurrency & Pipeline Oversight</span>
+              </h2>
+              <p>Global visibility across all drives. Administrator sees all candidate locks across J001, J002, J003 simultaneously.</p>
+            </div>
+            <div>
+              <input 
+                type="text" 
+                class="form-input" 
+                style="width: 260px; font-size: 0.82rem; padding: 6px 12px;" 
+                placeholder="Search candidate / lock..." 
+                v-model="oversightSearch">
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Candidate</th>
+                  <th>Location</th>
+                  <th>Exp / CTC</th>
+                  <th>Multi-Job Lock Status</th>
+                  <th>Drive Group</th>
+                  <th>Recruiter Assigned</th>
+                  <th>Current Pipeline Stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="c in filteredOversightCandidates" :key="c.name">
+                  <td>
+                    <div style="font-weight: 700; color: white;">{{ c.candidate_name }}</div>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">{{ c.position_applied || 'Analyst' }}</div>
+                  </td>
+                  <td>{{ c.current_location || 'Patna' }}</td>
+                  <td>
+                    <span style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1;">
+                      {{ c.experience_years }} Yrs • ₹{{ c.expected_ctc ? Math.round(c.expected_ctc / 12) : 0 }}k/mo
+                    </span>
+                  </td>
+                  <td>
+                    <div v-if="c.locks && Object.keys(c.locks).length" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                      <span v-for="(lock, jid) in c.locks" :key="jid" class="job-pill" :class="getJobPillClass(jid)">
+                        {{ jid }}
+                      </span>
+                    </div>
+                    <span v-else style="font-size: 0.78rem; color: #64748b; font-style: italic;">
+                      Available / Unclaimed
+                    </span>
+                  </td>
+                  <td>
+                    <span style="font-size: 0.8rem; color: #cbd5e1;">
+                      {{ c.selected_group || '-' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span style="font-size: 0.82rem; font-weight: 600; color: #e2e8f0;">
+                      {{ c.selected_by || '-' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                      {{ c.status || 'Screening' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: DIRECT CANDIDATE REGISTRATION -->
+      <section v-show="currentTab === 'candidate_add'">
+        <div class="panel-card" style="max-width: 820px; margin: 0 auto;">
+          <div class="card-head">
+            <div>
+              <h2>
+                <i data-lucide="file-plus" style="width: 18px; height: 18px; color: #818cf8;"></i>
+                <span>Direct Candidate Profile Registration</span>
+              </h2>
+              <p>Add candidate profiles into the Frappe talent pool. Candidates will immediately become available in the sourcing database.</p>
+            </div>
+          </div>
+
+          <form @submit.prevent="submitCandidateForm" style="padding: 24px;">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Candidate Full Name *</label>
+                <input type="text" class="form-input" v-model="candForm.candidate_name" required placeholder="e.g. Anjali Sharma">
+              </div>
+
+              <div class="form-group">
+                <label>Target Role / Position *</label>
+                <input type="text" class="form-input" v-model="candForm.position_applied" required placeholder="e.g. Financial Analyst">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="text" class="form-input" v-model="candForm.phone" required placeholder="e.g. 9876543210">
+              </div>
+
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" class="form-input" v-model="candForm.email" placeholder="e.g. anjali@example.com">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Current Location *</label>
+                <input type="text" class="form-input" v-model="candForm.current_location" required placeholder="e.g. Patna, Bihar">
+              </div>
+
+              <div class="form-group">
+                <label>Experience (Years)</label>
+                <input type="number" step="0.5" class="form-input" v-model="candForm.experience_years" placeholder="e.g. 3.5">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Expected CTC (₹ / Annum)</label>
+                <input type="number" class="form-input" v-model="candForm.expected_ctc" placeholder="e.g. 450000">
+              </div>
+
+              <div class="form-group">
+                <label>Profile Tags / Skills</label>
+                <input type="text" class="form-input" v-model="candForm.profile_tags" placeholder="e.g. Excel, SQL, MIS Reporting, Financial Modeling">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>External Resume URL (Optional)</label>
+              <input type="url" class="form-input" v-model="candForm.resume_url" placeholder="https://example.com/resume.pdf">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+              <button type="button" class="nav-btn nav-btn-secondary" @click="resetCandForm">Clear</button>
+              <button type="submit" class="nav-btn nav-btn-primary" :disabled="isSubmitting">
+                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                <span>Register Candidate Profile</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 4: JOB OPENINGS DIRECTORY -->
+      <section v-show="currentTab === 'openings'">
+        <div class="panel-card">
+          <div class="card-head">
+            <div>
+              <h2>
+                <i data-lucide="briefcase" style="width: 18px; height: 18px; color: #818cf8;"></i>
+                <span>Job Openings Directory & Recruiter Bindings</span>
+              </h2>
+              <p>Active positions tracked in Frappe HR Desk with linked recruiter IDs.</p>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Job Code</th>
+                  <th>Opening Title</th>
+                  <th>Designation</th>
+                  <th>Assigned Recruiter</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="op in jobOpenings" :key="op.name">
+                  <td>
+                    <span class="job-pill" :class="getJobPillClass(getJobIdFromTitle(op.job_title))">
+                      {{ getJobIdFromTitle(op.job_title) }}
+                    </span>
+                  </td>
+                  <td style="font-weight: 700; color: white;">{{ op.job_title }}</td>
+                  <td>{{ op.designation || 'Analyst' }}</td>
+                  <td>
+                    <span style="font-weight: 600; color: #818cf8;">
+                      {{ getRecruiterForJob(getJobIdFromTitle(op.job_title)) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge badge-active">{{ op.status || 'Open' }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- MODAL: PROVISION RECRUITER -->
+    <div class="modal-overlay" v-if="showCreateRecruiterModal" @click.self="showCreateRecruiterModal = false">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h3>
+            <i data-lucide="user-plus" style="width: 18px; height: 18px; color: #818cf8;"></i>
+            <span>Provision Recruiter Account & Scoped Job ID</span>
+          </h3>
+          <button class="modal-close-btn" @click="showCreateRecruiterModal = false">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="submitCreateRecruiter">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Recruiter Full Name *</label>
+              <input type="text" class="form-input" v-model="recruiterForm.name" required placeholder="e.g. Pooja Patel">
+            </div>
+
+            <div class="form-group">
+              <label>Login Email Address (Username) *</label>
+              <input type="email" class="form-input" v-model="recruiterForm.email" required placeholder="e.g. pooja@taskora.com">
+            </div>
+
+            <div class="form-group">
+              <label>Login Password *</label>
+              <input type="password" class="form-input" v-model="recruiterForm.password" required placeholder="Create a secure password">
+            </div>
+
+            <div class="form-group">
+              <label>Assigned Job ID Scope * (Recruiter will only see this Job)</label>
+              <select class="form-select" v-model="recruiterForm.job_id" required>
+                <option value="J001">J001 (Analyst | j001)</option>
+                <option value="J002">J002 (Analyst | j0002)</option>
+                <option value="J003">J003 (Analyst | J003)</option>
+                <option value="J004">J004 (Analyst | J004)</option>
+                <option value="J005">J005 (developer | j005)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="nav-btn nav-btn-secondary" @click="showCreateRecruiterModal = false">Cancel</button>
+            <button type="submit" class="nav-btn nav-btn-primary" :disabled="isSubmitting">
+              <span>Create & Provision Account</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: EDIT RECRUITER SCOPE -->
+    <div class="modal-overlay" v-if="showEditModal" @click.self="showEditModal = false">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h3>
+            <i data-lucide="edit-3" style="width: 18px; height: 18px; color: #818cf8;"></i>
+            <span>Edit Recruiter Scope & Details</span>
+          </h3>
+          <button class="modal-close-btn" @click="showEditModal = false">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="submitEditRecruiter">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Recruiter Full Name</label>
+              <input type="text" class="form-input" v-model="editForm.name" required>
+            </div>
+
+            <div class="form-group">
+              <label>Assigned Job ID Scope</label>
+              <select class="form-select" v-model="editForm.job_id" required>
+                <option value="J001">J001 (Analyst | j001)</option>
+                <option value="J002">J002 (Analyst | j0002)</option>
+                <option value="J003">J003 (Analyst | J003)</option>
+                <option value="J004">J004 (Analyst | J004)</option>
+                <option value="J005">J005 (developer | j005)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="nav-btn nav-btn-secondary" @click="showEditModal = false">Cancel</button>
+            <button type="submit" class="nav-btn nav-btn-primary" :disabled="isSubmitting">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: RESET PASSWORD -->
+    <div class="modal-overlay" v-if="showPasswordModal" @click.self="showPasswordModal = false">
+      <div class="modal-window" style="max-width: 440px;">
+        <div class="modal-header">
+          <h3>
+            <i data-lucide="key" style="width: 18px; height: 18px; color: #818cf8;"></i>
+            <span>Reset Password</span>
+          </h3>
+          <button class="modal-close-btn" @click="showPasswordModal = false">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="submitResetPassword">
+          <div class="modal-body">
+            <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 14px;">
+              Reset password for <strong style="color: white;">{{ passwordForm.email }}</strong>:
+            </p>
+            <div class="form-group">
+              <label>New Password *</label>
+              <input type="password" class="form-input" v-model="passwordForm.new_password" required placeholder="Enter new password">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="nav-btn nav-btn-secondary" @click="showPasswordModal = false">Cancel</button>
+            <button type="submit" class="nav-btn nav-btn-primary" :disabled="isSubmitting">Update Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TOAST ALERTS -->
+    <div class="toast-container">
+      <div v-for="t in toasts" :key="t.id" class="toast-card" :class="t.type === 'success' ? 'toast-success' : 'toast-error'">
+        <i :data-lucide="t.type === 'success' ? 'check-circle' : 'alert-triangle'" style="width: 18px; height: 18px;"></i>
+        <span>{{ t.message }}</span>
+      </div>
+    </div>
+
+    </div>
+  {% endraw %}
+
+  <script>
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const currentTab = ref('recruiters'); // 'recruiters' | 'oversight' | 'candidate_add' | 'openings'
+        const isSubmitting = ref(false);
+        const toasts = ref([]);
+        const oversightSearch = ref('');
+
+        const stats = ref({
+          total_recruiters: 0,
+          total_openings: 0,
+          total_candidates: 0,
+          selected_candidates: 0
+        });
+
+        const recruiters = ref([]);
+        const jobOpenings = ref([]);
+        const oversightCandidates = ref([]);
+
+        // Modals
+        const showCreateRecruiterModal = ref(false);
+        const recruiterForm = ref({ name: '', email: '', password: '', job_id: 'J001' });
+
+        const showEditModal = ref(false);
+        const editForm = ref({ email: '', name: '', job_id: 'J001' });
+
+        const showPasswordModal = ref(false);
+        const passwordForm = ref({ email: '', new_password: '' });
+
+        const candForm = ref({
+          candidate_name: '',
+          position_applied: 'Analyst',
+          phone: '',
+          email: '',
+          current_location: 'Patna',
+          experience_years: 2.0,
+          expected_ctc: 420000,
+          profile_tags: '',
+          resume_url: ''
+        });
+
+        const triggerLucide = () => {
+          nextTick(() => {
+            if (window.lucide) window.lucide.createIcons();
+          });
+        };
+
+        const showToast = (message, type = 'success') => {
+          const id = Date.now();
+          toasts.value.push({ id, message, type });
+          triggerLucide();
+          setTimeout(() => {
+            toasts.value = toasts.value.filter(t => t.id !== id);
+          }, 4000);
+        };
+
+        const getJobIdFromTitle = (title) => {
+          if (!title) return 'J001';
+          const m = title.match(/[jJ]0*(\d+)/);
+          return m ? `J${String(m[1]).padStart(3, '0')}` : 'J001';
+        };
+
+        const getJobPillClass = (jobId) => {
+          if (!jobId) return 'pill-generic';
+          const norm = String(jobId).toUpperCase();
+          if (norm.includes('J001')) return 'pill-j001';
+          if (norm.includes('J002')) return 'pill-j002';
+          if (norm.includes('J003')) return 'pill-j003';
+          return 'pill-generic';
+        };
+
+        const getInitials = (name) => {
+          if (!name) return 'U';
+          const parts = name.trim().split(' ');
+          return parts.map(p => p[0]).slice(0, 2).join('').toUpperCase();
+        };
+
+        const getJobOpeningTitle = (jobId) => {
+          const match = jobOpenings.value.find(op => getJobIdFromTitle(op.job_title) === jobId);
+          return match ? match.job_title : `${jobId} Opening`;
+        };
+
+        const getRecruiterForJob = (jobId) => {
+          const match = recruiters.value.find(r => r.assigned_job_id === jobId);
+          return match ? match.recruiter_name : 'Unassigned';
+        };
+
+        const fetchData = async () => {
+          try {
+            const resp = await fetch('/api/method/face_attendance.api.get_admin_panel_data');
+            const data = await resp.json();
+            if (data.message && data.message.success) {
+              const res = data.message;
+              recruiters.value = res.recruiters || [];
+              jobOpenings.value = res.job_openings || [];
+              stats.value = res.overview || stats.value;
+            }
+          } catch (e) {
+            console.error('Error fetching admin data:', e);
+          }
+
+          // Fetch full candidate database for cross-job oversight
+          try {
+            const cResp = await fetch('/api/method/face_attendance.api.search_job_candidates?page=1&page_size=100');
+            const cData = await cResp.json();
+            if (cData.message && cData.message.candidates) {
+              oversightCandidates.value = cData.message.candidates.map(c => ({
+                name: c.name,
+                candidate_name: c.candidate_name,
+                position_applied: c.position_applied,
+                current_location: c.current_location,
+                experience_years: c.experience_years,
+                expected_ctc: c.expected_ctc,
+                locks: c.job_locks || {},
+                selected_group: c.selected_group,
+                selected_by: c.selected_by,
+                status: c.status
+              }));
+            }
+          } catch (e) {
+            console.error('Error fetching oversight candidates:', e);
+          }
+
+          triggerLucide();
+        };
+
+        const filteredOversightCandidates = computed(() => {
+          if (!oversightSearch.value.trim()) return oversightCandidates.value;
+          const q = oversightSearch.value.toLowerCase();
+          return oversightCandidates.value.filter(c => 
+            c.candidate_name.toLowerCase().includes(q) ||
+            (c.position_applied && c.position_applied.toLowerCase().includes(q)) ||
+            (c.selected_by && c.selected_by.toLowerCase().includes(q)) ||
+            (c.selected_group && c.selected_group.toLowerCase().includes(q))
+          );
+        });
+
+        const openCreateRecruiterModal = () => {
+          recruiterForm.value = { name: '', email: '', password: '', job_id: 'J001' };
+          showCreateRecruiterModal.value = true;
+          triggerLucide();
+        };
+
+        const openAddCandidateModal = () => {
+          currentTab.value = 'candidate_add';
+          triggerLucide();
+        };
+
+        const editRecruiter = (r) => {
+          editForm.value = { email: r.user_email, name: r.recruiter_name, job_id: r.assigned_job_id };
+          showEditModal.value = true;
+          triggerLucide();
+        };
+
+        const openResetPasswordModal = (r) => {
+          passwordForm.value = { email: r.user_email, new_password: '' };
+          showPasswordModal.value = true;
+          triggerLucide();
+        };
+
+        const submitCreateRecruiter = async () => {
+          isSubmitting.value = true;
+          try {
+            const formData = new URLSearchParams();
+            formData.append('recruiter_name', recruiterForm.value.name);
+            formData.append('email', recruiterForm.value.email);
+            formData.append('password', recruiterForm.value.password);
+            formData.append('assigned_job_id', recruiterForm.value.job_id);
+
+            const resp = await fetch('/api/method/face_attendance.api.create_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: formData
+            });
+            const res = await resp.json();
+            if (res.message && res.message.success) {
+              showToast(res.message.message, 'success');
+              showCreateRecruiterModal.value = false;
+              fetchData();
+            } else {
+              showToast(res.message?.message || 'Failed creating recruiter account', 'error');
+            }
+          } catch (e) {
+            showToast('Network error creating recruiter', 'error');
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const submitEditRecruiter = async () => {
+          isSubmitting.value = true;
+          try {
+            const formData = new URLSearchParams();
+            formData.append('email', editForm.value.email);
+            formData.append('recruiter_name', editForm.value.name);
+            formData.append('assigned_job_id', editForm.value.job_id);
+
+            const resp = await fetch('/api/method/face_attendance.api.update_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: formData
+            });
+            const res = await resp.json();
+            if (res.message && res.message.success) {
+              showToast(res.message.message, 'success');
+              showEditModal.value = false;
+              fetchData();
+            } else {
+              showToast(res.message?.message || 'Update failed', 'error');
+            }
+          } catch (e) {
+            showToast('Network error updating recruiter', 'error');
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const submitResetPassword = async () => {
+          isSubmitting.value = true;
+          try {
+            const formData = new URLSearchParams();
+            formData.append('email', passwordForm.value.email);
+            formData.append('new_password', passwordForm.value.new_password);
+
+            const resp = await fetch('/api/method/face_attendance.api.update_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: formData
+            });
+            const res = await resp.json();
+            if (res.message && res.message.success) {
+              showToast('Password reset successfully!', 'success');
+              showPasswordModal.value = false;
+            } else {
+              showToast(res.message?.message || 'Password reset failed', 'error');
+            }
+          } catch (e) {
+            showToast('Network error resetting password', 'error');
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const toggleRecruiterStatus = async (r) => {
+          try {
+            const newStatus = r.is_active ? 0 : 1;
+            const formData = new URLSearchParams();
+            formData.append('email', r.user_email);
+            formData.append('is_active', newStatus);
+
+            const resp = await fetch('/api/method/face_attendance.api.update_recruiter_account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: formData
+            });
+            const res = await resp.json();
+            if (res.message && res.message.success) {
+              showToast(`Recruiter ${newStatus ? 'activated' : 'disabled'}!`, 'success');
+              fetchData();
+            }
+          } catch (e) {
+            showToast('Error changing account status', 'error');
+          }
+        };
+
+        const submitCandidateForm = async () => {
+          isSubmitting.value = true;
+          try {
+            const formData = new URLSearchParams();
+            Object.keys(candForm.value).forEach(k => formData.append(k, candForm.value[k] || ''));
+
+            const resp = await fetch('/api/method/face_attendance.api.admin_create_candidate_profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: formData
+            });
+            const res = await resp.json();
+            if (res.message && res.message.success) {
+              showToast(res.message.message, 'success');
+              resetCandForm();
+              fetchData();
+            } else {
+              showToast(res.message?.message || 'Failed creating profile', 'error');
+            }
+          } catch (e) {
+            showToast('Network error creating candidate', 'error');
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const resetCandForm = () => {
+          candForm.value = {
+            candidate_name: '',
+            position_applied: 'Analyst',
+            phone: '',
+            email: '',
+            current_location: 'Patna',
+            experience_years: 2.0,
+            expected_ctc: 420000,
+            profile_tags: '',
+            resume_url: ''
+          };
+        };
+
+        const refreshData = () => {
+          fetchData();
+          showToast('Data refreshed!', 'success');
+        };
+
+        onMounted(() => {
+          fetchData();
+        });
+
+        return {
+          currentTab,
+          isSubmitting,
+          toasts,
+          oversightSearch,
+          stats,
+          recruiters,
+          jobOpenings,
+          oversightCandidates,
+          filteredOversightCandidates,
+          showCreateRecruiterModal,
+          recruiterForm,
+          showEditModal,
+          editForm,
+          showPasswordModal,
+          passwordForm,
+          candForm,
+          getJobIdFromTitle,
+          getJobPillClass,
+          getInitials,
+          getJobOpeningTitle,
+          getRecruiterForJob,
+          openCreateRecruiterModal,
+          openAddCandidateModal,
+          editRecruiter,
+          openResetPasswordModal,
+          submitCreateRecruiter,
+          submitEditRecruiter,
+          submitResetPassword,
+          toggleRecruiterStatus,
+          submitCandidateForm,
+          resetCandForm,
+          refreshData
+        };
+      }
+    }).mount('#app');
+  </script>
+  
+</body>
+</html>

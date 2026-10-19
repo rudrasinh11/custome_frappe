@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Work Delegation & Task Hierarchy | Taskora & Frappe HR</title>
+  
+  <!-- Modern Inter & Outfit Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons & Vue 3 -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border-base: #e2e8f0;
+      --border-light: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    [v-cloak] { display: none; }
+
+    /* --- Navbar Header --- */
+    .app-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-base);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: #ffffff;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-base);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      border-color: #cbd5e1;
+    }
+
+    .nav-btn-solid {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    .nav-btn-solid:hover {
+      background: #1d4ed8;
+      color: #ffffff;
+    }
+
+    .view-mode-tabs {
+      display: flex;
+      background: var(--bg-subtle);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-base);
+    }
+
+    .view-tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .view-tab.active {
+      background: #ffffff;
+      color: #2563eb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* --- Interactive Persona Switcher Banner --- */
+    .persona-bar {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-bottom: 1px solid var(--border-base);
+      padding: 14px 24px;
+    }
+
+    .persona-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .persona-active-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .persona-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #dbeafe;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      border: 2px solid #bfdbfe;
+    }
+
+    .persona-details h3 {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .persona-details p {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    .persona-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .persona-select-btn {
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border: 1px solid var(--border-base);
+      background: #ffffff;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .persona-select-btn:hover {
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    .persona-select-btn.active {
+      background: #1e40af;
+      color: #ffffff;
+      border-color: #1e40af;
+      box-shadow: 0 2px 4px rgba(30,64,175,0.25);
+    }
+
+    /* --- Main Container --- */
+    .main-wrap {
+      max-width: 1440px;
+      margin: 24px auto 60px auto;
+      padding: 0 24px;
+    }
+
+    /* --- Delegation Hierarchy Guide Banner --- */
+    .hierarchy-guide {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-left: 4px solid #2563eb;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .guide-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .guide-title {
+      font-weight: 800;
+      font-size: 0.94rem;
+      color: var(--text-primary);
+    }
+
+    .guide-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    /* --- KPI Metric Cards --- */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card-header {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .kpi-val {
+      font-family: var(--font-heading);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+
+    .kpi-sub {
+      font-size: 0.74rem;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* --- Kanban Board View --- */
+    .kanban-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      align-items: flex-start;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 1024px) {
+      .kanban-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+    }
+
+    .kanban-col {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      min-height: 580px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kanban-col-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 14px;
+    }
+
+    .kanban-col-title {
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kanban-col-count {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+
+    .task-card {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: #93c5fd;
+    }
+
+    .task-priority-pill {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.03em;
+    }
+
+    .p-urgent { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .p-high { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .p-medium { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .p-low { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+    .task-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 8px 0 6px 0;
+      line-height: 1.35;
+    }
+
+    .task-desc-snippet {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .task-assignment-strip {
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 0.74rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .assignment-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .task-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-light);
+      padding-top: 10px;
+      gap: 6px;
+    }
+
+    .btn-stage {
+      padding: 5px 10px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 1px solid var(--border-base);
+      background: #ffffff;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-stage:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    /* --- Org Tree Hierarchy Visualizer --- */
+    .org-chart-wrap {
+      background: #ffffff;
+      border: 1px solid var(--border-base);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+    }
+
+    .org-tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      min-width: 900px;
+    }
+
+    .tree-node-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-base);
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-sm);
+      min-width: 200px;
+      text-align: center;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .tree-node-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: #3b82f6;
+    }
+
+    .node-director {
+      border-color: #2563eb;
+      background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.12);
+    }
+
+    .node-hr {
+      border-color: #8b5cf6;
+      background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+    }
+
+    .node-manager {
+      border-color: #059669;
+      background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
+    }
+
+    .node-staff {
+      background: #ffffff;
+    }
+
+    .managers-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      width: 100%;
+    }
+
+    .manager-pod {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 10px;
+    }
+
+    .staff-pair {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    /* --- Modals --- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow: var(--shadow-lg);
+      padding: 24px;
+      position: relative;
+    }
+
+    .filter-input, .filter-select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border-base);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: #ffffff;
+      color: var(--text-primary);
+      margin-top: 4px;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    /* --- Toast Notification --- */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 14px 20px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 200;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+{% raw %}
+  <div id="app" v-cloak>
+    
+    <!-- Header Navbar -->
+    <header class="app-header">
+      <div class="header-inner">
+        <a href="/work-assignment" class="brand-wrap">
+          <div class="brand-icon">
+            <i data-lucide="building-2" style="width:20px; height:20px;"></i>
+          </div>
+          <div class="brand-text">
+            <h1>Taskora & Frappe HR</h1>
+            <p>Hierarchical Company Work Delegation System</p>
+          </div>
+        </a>
+
+        <!-- View Switcher -->
+        <div class="view-mode-tabs">
+          <button 
+            type="button" 
+            class="view-tab" 
+            :class="{ active: currentTab === 'kanban' }" 
+            @click="currentTab = 'kanban'">
+            <i data-lucide="layout-grid" style="width:14px; height:14px;"></i>
+            <span>Task Kanban Board</span>
+          </button>
+          <button 
+            type="button" 
+            class="view-tab" 
+            :class="{ active: currentTab === 'orgchart' }" 
+            @click="currentTab = 'orgchart'">
+            <i data-lucide="git-branch" style="width:14px; height:14px;"></i>
+            <span>21-Personnel Org Chart</span>
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="header-actions">
+          <a href="/app" target="_blank" class="nav-btn nav-btn-solid">
+            <i data-lucide="external-link" style="width:13px; height:13px;"></i>
+            <span>Frappe Desk ↗</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Interactive Persona Switcher Banner -->
+    <section class="persona-bar">
+      <div class="persona-inner">
+        <!-- Active Persona Display -->
+        <div class="persona-active-badge">
+          <div class="persona-avatar">
+            {{ getInitials(activeEmployee.employee_name) }}
+          </div>
+          <div class="persona-details">
+            <h3>
+              <span>{{ activeEmployee.employee_name }}</span>
+              <span 
+                style="font-size:0.72rem; padding:2px 8px; border-radius:9999px; font-weight:700;"
+                :style="getRoleBadgeStyle(activePersonaRole)">
+                {{ activePersonaRole }}
+              </span>
+            </h3>
+            <p>
+              {{ activeEmployee.designation }} &bull; {{ activeEmployee.department }}
+              &bull; <b style="color:#2563eb;">{{ allowedAssignees.length }} Authorized Assignees</b>
+            </p>
+          </div>
+        </div>
+
+        <!-- Role Delegation Rule Reminder -->
+        <div style="font-size:0.78rem; color:var(--text-secondary); max-width:440px; background:var(--bg-subtle); padding:6px 12px; border-radius:8px; border:1px solid var(--border-base);">
+          <b>Hierarchy Rule:</b> {{ permissionNote }}
+        </div>
+      </div>
+
+      <!-- Quick Switcher Buttons for Demo -->
+      <div style="max-width:1440px; margin:12px auto 0 auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span style="font-size:0.74rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Switch Role:</span>
+        
+        <!-- Director Button -->
+        <button 
+          v-if="hierarchy.director"
+          type="button" 
+          class="persona-select-btn" 
+          :class="{ active: activeEmployee.name === hierarchy.director.name }"
+          @click="selectPersona(hierarchy.director, 'Director')">
+          <span>👑 Director ({{ hierarchy.director.first_name }})</span>
+        </button>
+
+        <!-- HR Leads -->
+        <button 
+          v-for="hr in hierarchy.hr_leads" 
+          :key="hr.name" 
+          type="button" 
+          class="persona-select-btn" 
+          :class="{ active: activeEmployee.name === hr.name }"
+          @click="selectPersona(hr, 'HR')">
+          <span>🛡️ HR: {{ hr.first_name }}</span>
+        </button>
+
+        <!-- 6 Managers -->
+        <button 
+          v-for="m in hierarchy.managers" 
+          :key="m.name" 
+          type="button" 
+          class="persona-select-btn" 
+          :class="{ active: activeEmployee.name === m.name }"
+          @click="selectPersona(m, 'Manager')">
+          <span>👔 {{ m.first_name }} ({{ (m.designation || 'Manager').replace(' Manager', '').replace(' Head', '').replace(' Lead', '') }})</span>
+        </button>
+
+        <!-- Example Staff -->
+        <button 
+          v-if="hierarchy.staff_employees && hierarchy.staff_employees.length"
+          type="button" 
+          class="persona-select-btn" 
+          :class="{ active: activeEmployee.name === hierarchy.staff_employees[0].name }"
+          @click="selectPersona(hierarchy.staff_employees[0], 'Employee')">
+          <span>👷 Staff ({{ hierarchy.staff_employees[0].first_name }})</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="main-wrap">
+      
+      <!-- Delegation Hierarchy Explanation Card -->
+      <div class="hierarchy-guide">
+        <div class="guide-left">
+          <i data-lucide="shield-check" style="width:24px; height:24px; color:#2563eb; flex-shrink:0;"></i>
+          <div>
+            <div class="guide-title">Enterprise Role-Based Delegation Enforcement</div>
+            <div class="guide-desc">
+              <b>Director</b> delegates to all 20 colleagues &bull; 
+              <b>HR</b> assigns company operational requisitions &bull; 
+              <b>6 Managers</b> strictly assign to their <b>2 direct report employees</b> &bull; 
+              <b>12 Staff Employees</b> update progress & complete tasks.
+            </div>
+          </div>
+        </div>
+
+        <!-- + Delegate Work / Create Task Button -->
+        <div>
+          <button 
+            type="button" 
+            class="nav-btn nav-btn-solid" 
+            style="padding:10px 18px; font-size:0.88rem;"
+            :disabled="!canAssignWork"
+            @click="openCreateTaskModal">
+            <i data-lucide="plus-circle" style="width:16px; height:16px;"></i>
+            <span>{{ canAssignWork ? '+ Delegate Work / Assign Task' : '🚫 Submissions Restricted (Staff Role)' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metrics Row -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Total Tasks</span>
+            <i data-lucide="list-todo" style="width:16px; height:16px; color:#2563eb;"></i>
+          </div>
+          <div class="kpi-val">{{ taskKpis.total || 0 }}</div>
+          <div class="kpi-sub" style="color:#64748b;">Active Delegation Work Orders</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>To Do (Pending)</span>
+            <i data-lucide="clock" style="width:16px; height:16px; color:#64748b;"></i>
+          </div>
+          <div class="kpi-val">{{ taskKpis.todo || 0 }}</div>
+          <div class="kpi-sub" style="color:#64748b;">Awaiting Staff Start</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>In Progress</span>
+            <i data-lucide="activity" style="width:16px; height:16px; color:#3b82f6;"></i>
+          </div>
+          <div class="kpi-val">{{ taskKpis.in_progress || 0 }}</div>
+          <div class="kpi-sub" style="color:#2563eb;">Currently Being Worked On</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Under Review</span>
+            <i data-lucide="search" style="width:16px; height:16px; color:#f59e0b;"></i>
+          </div>
+          <div class="kpi-val">{{ taskKpis.under_review || 0 }}</div>
+          <div class="kpi-sub" style="color:#d97706;">Submitted for Manager Sign-off</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Completed</span>
+            <i data-lucide="check-circle-2" style="width:16px; height:16px; color:#10b981;"></i>
+          </div>
+          <div class="kpi-val">{{ taskKpis.completed || 0 }}</div>
+          <div class="kpi-sub" style="color:#059669;">Verified & Closed</div>
+        </div>
+      </div>
+
+      <!-- VIEW 1: KANBAN WORK BOARD -->
+      <section v-if="currentTab === 'kanban'">
+        <!-- Filter Controls -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <select class="filter-select" v-model="filterDepartment" @change="fetchTasks" style="width:auto; margin:0; font-size:0.82rem; padding:6px 12px;">
+              <option value="All">All Departments</option>
+              <option value="Sales - F">Sales Department</option>
+              <option value="Marketing - F">Marketing Department</option>
+              <option value="Operations - F">Operations Department</option>
+              <option value="Research & Development - F">Tech / IT Department</option>
+              <option value="Accounts - F">Finance & Accounts</option>
+              <option value="Dispatch - F">Logistics & Supply</option>
+              <option value="Human Resources - F">Human Resources</option>
+            </select>
+
+            <button type="button" class="nav-btn" @click="fetchTasks">
+              <i data-lucide="rotate-cw" style="width:13px; height:13px;" :class="{ 'spin-icon': isLoadingTasks }"></i>
+              <span>Refresh Board</span>
+            </button>
+          </div>
+
+          <div style="font-size:0.82rem; color:var(--text-muted);">
+            Showing {{ allTasks.length }} tasks assigned across company hierarchy
+          </div>
+        </div>
+
+        <!-- 4-Column Kanban Grid -->
+        <div class="kanban-grid">
+          <div 
+            v-for="col in taskColumns" 
+            :key="col.id" 
+            class="kanban-col">
+            
+            <div class="kanban-col-top">
+              <span class="kanban-col-title">
+                <span>{{ col.title }}</span>
+              </span>
+              <span class="kanban-col-count">{{ col.tasks.length }}</span>
+            </div>
+
+            <!-- Task Cards -->
+            <div style="display:flex; flex-direction:column; gap:10px; flex:1;">
+              <div 
+                v-for="task in col.tasks" 
+                :key="task.name" 
+                class="task-card"
+                @click="openTaskDetailModal(task)">
+                
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span class="task-priority-pill" :class="'p-' + task.priority.toLowerCase()">
+                    {{ task.priority }}
+                  </span>
+                  <span style="font-size:0.72rem; color:var(--text-muted);">{{ task.due_date_formatted }}</span>
+                </div>
+
+                <div class="task-title">{{ task.title }}</div>
+                <div class="task-desc-snippet">{{ task.description }}</div>
+
+                <div class="task-assignment-strip">
+                  <div class="assignment-row">
+                    <span style="color:var(--text-muted);">Assigned To:</span>
+                    <b style="color:var(--text-primary);">{{ task.assigned_to_name }} ({{ task.assigned_to_role }})</b>
+                  </div>
+                  <div class="assignment-row">
+                    <span style="color:var(--text-muted);">Delegated By:</span>
+                    <span style="color:#2563eb; font-weight:600;">{{ task.assigned_by_name }}</span>
+                  </div>
+                </div>
+
+                <!-- Stage Transition Actions -->
+                <div class="task-actions-row" @click.stop>
+                  <span style="font-size:0.7rem; color:var(--text-muted);">{{ task.name }}</span>
+
+                  <div style="display:flex; gap:6px;">
+                    <button 
+                      v-if="task.status === 'To Do'" 
+                      type="button" 
+                      class="btn-stage" 
+                      @click="changeTaskStage(task, 'In Progress')">
+                      <span>Start Work ➔</span>
+                    </button>
+
+                    <button 
+                      v-if="task.status === 'In Progress'" 
+                      type="button" 
+                      class="btn-stage" 
+                      @click="changeTaskStage(task, 'Under Review')">
+                      <span>Submit Review ➔</span>
+                    </button>
+
+                    <button 
+                      v-if="task.status === 'Under Review'" 
+                      type="button" 
+                      class="btn-stage" 
+                      style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0;"
+                      @click="changeTaskStage(task, 'Completed')">
+                      <span>Approve & Done ✓</span>
+                    </button>
+
+                    <span v-if="task.status === 'Completed'" style="font-size:0.75rem; color:#059669; font-weight:700;">
+                      ✓ Completed
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+              <div v-if="!col.tasks.length" style="text-align:center; padding:40px 10px; color:var(--text-muted); font-size:0.8rem; border:1px dashed var(--border-base); border-radius:8px;">
+                No tasks in {{ col.id }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: 21-PERSONNEL ORG CHART -->
+      <section v-if="currentTab === 'orgchart'" class="org-chart-wrap">
+        <div style="text-align:center; margin-bottom:24px;">
+          <h2 style="font-size:1.25rem; font-weight:800; color:var(--text-primary);">21-Personnel Organizational Hierarchy & Direct Reports</h2>
+          <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:4px;">
+            1 Director &bull; 2 HR Leads &bull; 6 Department Managers &bull; 12 Staff Employees (2 direct reports per Manager)
+          </p>
+        </div>
+
+        <div class="org-tree">
+          <!-- Level 1: Managing Director -->
+          <div v-if="hierarchy.director" class="tree-node-card node-director" @click="selectPersona(hierarchy.director, 'Director')">
+            <div style="font-size:0.72rem; font-weight:800; color:#2563eb; text-transform:uppercase;">Level 1 &bull; Executive Directorship</div>
+            <div style="font-size:1.05rem; font-weight:800; margin:4px 0 2px 0;">👑 {{ hierarchy.director.employee_name }}</div>
+            <div style="font-size:0.78rem; color:#475569; font-weight:600;">{{ hierarchy.director.designation }}</div>
+            <div style="font-size:0.72rem; color:#64748b; margin-top:4px;">Universal Company Delegation Authority (20 Colleagues)</div>
+          </div>
+
+          <!-- Connector Line -->
+          <div style="width:2px; height:20px; background:#cbd5e1;"></div>
+
+          <!-- Level 2: 2 HR Personnel -->
+          <div style="display:flex; gap:20px;">
+            <div 
+              v-for="hr in hierarchy.hr_leads" 
+              :key="hr.name" 
+              class="tree-node-card node-hr"
+              @click="selectPersona(hr, 'HR')">
+              <div style="font-size:0.7rem; font-weight:800; color:#7c3aed; text-transform:uppercase;">Human Resources & Talent</div>
+              <div style="font-size:0.94rem; font-weight:800; margin:4px 0 2px 0;">🛡️ {{ hr.employee_name }}</div>
+              <div style="font-size:0.76rem; color:#475569;">{{ hr.designation }}</div>
+              <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">Cross-Dept Operations Delegation</div>
+            </div>
+          </div>
+
+          <!-- Connector Line -->
+          <div style="width:2px; height:20px; background:#cbd5e1;"></div>
+
+          <!-- Level 3: 6 Managers & Their Respective 2 Direct Reports -->
+          <div class="managers-row">
+            <div 
+              v-for="m in hierarchy.managers" 
+              :key="m.name" 
+              class="manager-pod">
+              
+              <!-- Manager Card -->
+              <div class="tree-node-card node-manager" style="width:100%; min-width:auto; padding:10px;" @click="selectPersona(m, 'Manager')">
+                <div style="font-size:0.68rem; font-weight:800; color:#047857; text-transform:uppercase;">Manager</div>
+                <div style="font-size:0.86rem; font-weight:800; margin:2px 0;">👔 {{ m.first_name }} {{ m.last_name }}</div>
+                <div style="font-size:0.72rem; color:#475569;">{{ m.designation }}</div>
+                <div style="font-size:0.68rem; color:#2563eb; font-weight:700; margin-top:4px;">{{ m.active_tasks || 0 }} Active Tasks</div>
+              </div>
+
+              <!-- Connecting Arrow -->
+              <div style="color:#94a3b8; font-size:0.75rem; font-weight:800;">▼ Direct Reports (2)</div>
+
+              <!-- 2 Staff Employees under this Manager -->
+              <div class="staff-pair">
+                <div 
+                  v-for="emp in m.direct_reports" 
+                  :key="emp.name" 
+                  class="tree-node-card node-staff" 
+                  style="width:100%; min-width:auto; padding:8px 10px;"
+                  @click="selectPersona(emp, 'Employee')">
+                  <div style="font-size:0.8rem; font-weight:700; color:#0f172a;">👷 {{ emp.first_name }} {{ emp.last_name }}</div>
+                  <div style="font-size:0.7rem; color:#64748b;">{{ emp.designation }}</div>
+                  <div style="font-size:0.68rem; color:#059669; font-weight:700; margin-top:2px;">{{ emp.active_tasks || 0 }} Tasks</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- CREATE TASK MODAL (Enforces Hierarchy) -->
+    <div class="modal-backdrop" v-if="showCreateModal" @click.self="showCreateModal = false">
+      <div class="modal-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-base); padding-bottom:10px;">
+          <h3 style="font-size:1.15rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="send" style="width:18px; height:18px; color:#2563eb;"></i>
+            <span>Delegate Work Order</span>
+          </h3>
+          <button style="border:none; background:none; font-size:1.4rem; cursor:pointer;" @click="showCreateModal = false">&times;</button>
+        </div>
+
+        <!-- Assigner Information -->
+        <div style="background:#f8fafc; padding:10px 14px; border-radius:8px; margin-bottom:14px; border:1px solid #e2e8f0; font-size:0.8rem;">
+          <div>Delegating As: <b>{{ activeEmployee.employee_name }}</b> ({{ activeEmployee.designation }})</div>
+          <div style="color:#2563eb; font-weight:600; margin-top:2px;">{{ permissionNote }}</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+          <div>
+            <label style="font-size:0.75rem; font-weight:800; color:#334155; text-transform:uppercase;">Task Title *</label>
+            <input type="text" class="filter-input" v-model="newTaskForm.title" placeholder="e.g. Complete Bettiah Retail Partner Verification">
+          </div>
+
+          <div>
+            <label style="font-size:0.75rem; font-weight:800; color:#334155; text-transform:uppercase;">Assign Work To (Authorized Hierarchy) *</label>
+            <select class="filter-select" v-model="newTaskForm.assigned_to_id">
+              <option value="" disabled>-- Select Authorized Subordinate --</option>
+              <option v-for="a in allowedAssignees" :key="a.name" :value="a.name">
+                {{ a.employee_name }} &bull; {{ a.designation }} ({{ a.department }})
+              </option>
+            </select>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:800; color:#334155; text-transform:uppercase;">Priority</label>
+              <select class="filter-select" v-model="newTaskForm.priority">
+                <option value="Urgent">🚨 Urgent</option>
+                <option value="High">🔥 High</option>
+                <option value="Medium">⚡ Medium</option>
+                <option value="Low">☕ Low</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:800; color:#334155; text-transform:uppercase;">Due Date</label>
+              <input type="date" class="filter-input" v-model="newTaskForm.due_date">
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:0.75rem; font-weight:800; color:#334155; text-transform:uppercase;">Task Description & Deliverables</label>
+            <textarea class="filter-input" style="height:70px; resize:vertical;" v-model="newTaskForm.description" placeholder="Specify deliverables, instructions, and objectives..."></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid var(--border-base); padding-top:12px;">
+          <button type="button" class="nav-btn" @click="showCreateModal = false">Cancel</button>
+          <button type="button" class="nav-btn nav-btn-solid" :disabled="isSubmittingTask" @click="submitNewTask">
+            <span>{{ isSubmittingTask ? 'Delegating...' : 'Delegate & Assign Work' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK DETAIL MODAL -->
+    <div class="modal-backdrop" v-if="selectedTask" @click.self="selectedTask = null">
+      <div class="modal-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span class="task-priority-pill" :class="'p-' + selectedTask.priority.toLowerCase()">{{ selectedTask.priority }} Priority</span>
+          <button style="border:none; background:none; font-size:1.4rem; cursor:pointer;" @click="selectedTask = null">&times;</button>
+        </div>
+
+        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:10px;">{{ selectedTask.title }}</h3>
+        <p style="font-size:0.85rem; color:#475569; line-height:1.5; margin-bottom:16px;">{{ selectedTask.description }}</p>
+
+        <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; font-size:0.8rem; display:flex; flex-direction:column; gap:6px; margin-bottom:16px;">
+          <div><b>Assigned To:</b> {{ selectedTask.assigned_to_name }} ({{ selectedTask.assigned_to_role }})</div>
+          <div><b>Delegated By:</b> {{ selectedTask.assigned_by_name }} ({{ selectedTask.assigned_by_role }})</div>
+          <div><b>Department:</b> {{ selectedTask.department }}</div>
+          <div><b>Deadline:</b> {{ selectedTask.due_date_formatted }}</div>
+          <div><b>Status:</b> <span style="font-weight:700; color:#2563eb;">{{ selectedTask.status }}</span></div>
+        </div>
+
+        <div v-if="selectedTask.completion_notes" style="margin-bottom:16px; font-size:0.82rem; background:#ecfdf5; padding:10px; border-radius:6px; border:1px solid #a7f3d0;">
+          <b>Completion / Review Notes:</b>
+          <div style="margin-top:3px; color:#065f46;">{{ selectedTask.completion_notes }}</div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button type="button" class="nav-btn" @click="selectedTask = null">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-popup" v-if="toast.show">
+      <i data-lucide="check-circle" style="width:18px; height:18px; color:#10b981;"></i>
+      <span>{{ toast.message }}</span>
+    </div>
+
+  </div>
+{% endraw %}
+
+  <script>
+    const { createApp, ref, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const currentTab = ref('kanban'); // 'kanban' | 'orgchart'
+        const hierarchy = ref({});
+        const activeEmployee = ref({});
+        const activePersonaRole = ref('Manager');
+        const allowedAssignees = ref([]);
+        const canAssignWork = ref(true);
+        const permissionNote = ref('');
+
+        const allTasks = ref([]);
+        const taskColumns = ref([]);
+        const taskKpis = ref({});
+        const filterDepartment = ref('All');
+        const isLoadingTasks = ref(false);
+
+        const showCreateModal = ref(false);
+        const isSubmittingTask = ref(false);
+        const newTaskForm = ref({
+          title: '',
+          description: '',
+          assigned_to_id: '',
+          priority: 'High',
+          due_date: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+        });
+
+        const selectedTask = ref(null);
+        const toast = ref({ show: false, message: '' });
+
+        const showToast = (msg) => {
+          toast.value = { show: true, message: msg };
+          setTimeout(() => { toast.value.show = false; }, 3500);
+        };
+
+        const getInitials = (name) => {
+          if (!name) return 'EMP';
+          const p = name.split(' ');
+          return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
+        };
+
+        const getRoleBadgeStyle = (role) => {
+          if (role === 'Director') return 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;';
+          if (role === 'HR') return 'background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe;';
+          if (role === 'Manager') return 'background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;';
+          return 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+        };
+
+        const fetchHierarchy = async () => {
+          try {
+            const res = await fetch('/api/method/face_attendance.api.get_company_hierarchy');
+            const json = await res.json();
+            if (json.message?.success) {
+              hierarchy.value = json.message;
+              // Default to Sales Manager for an engaging demo
+              if (!activeEmployee.value.name && hierarchy.value.managers?.length) {
+                selectPersona(hierarchy.value.managers[0], 'Manager');
+              }
+            }
+          } catch (e) {
+            console.error('Failed to load hierarchy:', e);
+          }
+        };
+
+        const selectPersona = async (emp, roleLevel) => {
+          activeEmployee.value = emp;
+          activePersonaRole.value = roleLevel;
+          try {
+            const res = await fetch(`/api/method/face_attendance.api.get_hierarchy_assignees?assigned_by_id=${emp.name}`);
+            const json = await res.json();
+            if (json.message?.success) {
+              allowedAssignees.value = json.message.assignees || [];
+              canAssignWork.value = json.message.can_assign;
+              permissionNote.value = json.message.permission_note || '';
+            }
+          } catch (e) {
+            console.error('Failed to load assignees:', e);
+          }
+          nextTick(() => lucide.createIcons());
+        };
+
+        const fetchTasks = async () => {
+          isLoadingTasks.value = true;
+          try {
+            const params = new URLSearchParams();
+            if (filterDepartment.value !== 'All') {
+              params.append('filter_dept', filterDepartment.value);
+            }
+            const res = await fetch(`/api/method/face_attendance.api.get_company_work_tasks?${params.toString()}`);
+            const json = await res.json();
+            if (json.message?.success) {
+              allTasks.value = json.message.tasks || [];
+              taskColumns.value = json.message.columns || [];
+              taskKpis.value = json.message.kpis || {};
+            }
+          } catch (e) {
+            console.error('Failed to load tasks:', e);
+          } finally {
+            isLoadingTasks.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const openCreateTaskModal = () => {
+          if (!canAssignWork.value) {
+            showToast('Hierarchy Rule: Staff role cannot assign tasks.');
+            return;
+          }
+          newTaskForm.value = {
+            title: '',
+            description: '',
+            assigned_to_id: allowedAssignees.value.length ? allowedAssignees.value[0].name : '',
+            priority: 'High',
+            due_date: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+          };
+          showCreateModal.value = true;
+          nextTick(() => lucide.createIcons());
+        };
+
+        const submitNewTask = async () => {
+          if (!newTaskForm.value.title || !newTaskForm.value.assigned_to_id) {
+            showToast('Please provide a task title and select an assignee.');
+            return;
+          }
+          isSubmittingTask.value = true;
+          try {
+            const params = new URLSearchParams({
+              title: newTaskForm.value.title,
+              description: newTaskForm.value.description,
+              assigned_by_id: activeEmployee.value.name,
+              assigned_to_id: newTaskForm.value.assigned_to_id,
+              priority: newTaskForm.value.priority,
+              due_date: newTaskForm.value.due_date,
+              department: activeEmployee.value.department
+            });
+            const res = await fetch(`/api/method/face_attendance.api.create_company_work_task?${params.toString()}`);
+            const json = await res.json();
+            if (json.message?.success) {
+              showToast(json.message.message);
+              showCreateModal.value = false;
+              fetchTasks();
+              fetchHierarchy();
+            } else {
+              showToast('Hierarchy Error: ' + (json.message?.message || 'Could not delegate work.'));
+            }
+          } catch (e) {
+            showToast('Error delegating work: ' + e.message);
+          } finally {
+            isSubmittingTask.value = false;
+          }
+        };
+
+        const changeTaskStage = async (task, newStage) => {
+          try {
+            const params = new URLSearchParams({
+              task_id: task.name,
+              new_status: newStage
+            });
+            const res = await fetch(`/api/method/face_attendance.api.update_company_work_task_status?${params.toString()}`);
+            const json = await res.json();
+            if (json.message?.success) {
+              showToast(`✓ Task ${task.name} moved to "${newStage}"!`);
+              fetchTasks();
+              fetchHierarchy();
+            }
+          } catch (e) {
+            showToast('Error updating status: ' + e.message);
+          }
+        };
+
+        const openTaskDetailModal = (t) => {
+          selectedTask.value = t;
+          nextTick(() => lucide.createIcons());
+        };
+
+        onMounted(async () => {
+          await fetchHierarchy();
+          await fetchTasks();
+          nextTick(() => lucide.createIcons());
+        });
+
+        return {
+          currentTab,
+          hierarchy,
+          activeEmployee,
+          activePersonaRole,
+          allowedAssignees,
+          canAssignWork,
+          permissionNote,
+          allTasks,
+          taskColumns,
+          taskKpis,
+          filterDepartment,
+          isLoadingTasks,
+          showCreateModal,
+          isSubmittingTask,
+          newTaskForm,
+          selectedTask,
+          toast,
+          getInitials,
+          getRoleBadgeStyle,
+          selectPersona,
+          fetchTasks,
+          openCreateTaskModal,
+          submitNewTask,
+          changeTaskStage,
+          openTaskDetailModal
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
