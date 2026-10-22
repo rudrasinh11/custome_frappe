@@ -1,0 +1,100 @@
+[
+  {
+    "name": "JOB-0001",
+    "job_id": "J001",
+    "job_title": "Junior Business Analyst",
+    "designation": "Analyst",
+    "status": "Open",
+    "publish": 1,
+    "description": "Fresher (0-1 Yr) \u2022 Python / Fullstack Dev \u2022 Patna Local HQ \u2022 Immediate Joiner \u2022 Requires strong data analysis and reporting skills.",
+    "candidate_count": 48,
+    "assigned_recruiters": [
+      "Recruiter J001 (Pooja)",
+      "Administrator"
+    ]
+  },
+  {
+    "name": "JOB-0002",
+    "job_id": "J002",
+    "job_title": "Field Sales & B2B Specialist",
+    "designation": "Field Sales Executive",
+    "status": "Open",
+    "publish": 1,
+    "description": "Field Sales & B2B \u2022 1-3 Yrs Exp \u2022 \u20b915k - \u20b925k/mo \u2022 Immediate Joiner \u2022 B2B distributor management and dealer network handling in North Bihar.",
+    "candidate_count": 62,
+    "assigned_recruiters": [
+      "Rahul Sharma (HR Director)",
+      "Recruiter J002 (Rahul)",
+      "rudrasinh t."
+    ]
+  },
+  {
+    "name": "JOB-0003",
+    "job_id": "J003",
+    "job_title": "Area Sales Manager",
+    "designation": "Sales Manager",
+    "status": "Open",
+    "publish": 1,
+    "description": "3-5 Yrs Exp \u2022 \u20b925k - \u20b940k/mo \u2022 Field Sales & B2B \u2022 Lead generation, dealer expansion, and regional sales execution.",
+    "candidate_count": 35,
+    "assigned_recruiters": [
+      "Rahul Sharma (HR Director)",
+      "Recruiter J002 (Rahul)"
+    ]
+  },
+  {
+    "name": "JOB-0004",
+    "job_id": "J004",
+    "job_title": "Telecalling & Customer Care",
+    "designation": "Telecalling Executive",
+    "status": "Open",
+    "publish": 1,
+    "description": "Telecalling & BPO \u2022 Fresher (0-1 Yr) \u2022 Good Hindi & English \u2022 Outbound lead qualification and tele-sales customer management.",
+    "candidate_count": 84,
+    "assigned_recruiters": [
+      "rudrasinh t.",
+      "Administrator"
+    ]
+  },
+  {
+    "name": "JOB-0005",
+    "job_id": "J005",
+    "job_title": "Digital Marketing & Brand Associate",
+    "designation": "Marketing Executive",
+    "status": "Open",
+    "publish": 1,
+    "description": "Digital Marketing \u2022 1-3 Yrs Exp \u2022 \u20b915k - \u20b925k/mo \u2022 Social media campaigns, Google ads, and creative brand awareness.",
+    "candidate_count": 41,
+    "assigned_recruiters": [
+      "Rahul Sharma (HR Director)",
+      "rudrasinh t."
+    ]
+  },
+  {
+    "name": "JOB-0006",
+    "job_id": "J006",
+    "job_title": "Accountant & Tally Specialist",
+    "designation": "Accountant",
+    "status": "Open",
+    "publish": 1,
+    "description": "Accounting & Tally \u2022 1-3 Yrs Exp \u2022 GST compliance, TDS filing, invoicing, and ledger reconciliation.",
+    "candidate_count": 39,
+    "assigned_recruiters": [
+      "Administrator"
+    ]
+  },
+  {
+    "name": "JOB-0007",
+    "job_id": "J007",
+    "job_title": "Senior Sales & Operations Lead",
+    "designation": "Operations Lead",
+    "status": "Open",
+    "publish": 1,
+    "description": "Field Sales & B2B \u2022 3-5 Yrs Exp \u2022 \u20b925k - \u20b940k/mo \u2022 Operations oversight and customer fulfillment across regional drives.",
+    "candidate_count": 45,
+    "assigned_recruiters": [
+      "Rahul Sharma (HR Director)",
+      "rudrasinh t."
+    ]
+  }
+]

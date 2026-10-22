@@ -1,0 +1,259 @@
+[
+  {
+    "id": "CARD-001",
+    "candidate_id": "CAND-0004",
+    "applicant_name": "Ankjeet Sonvani",
+    "job_title": "Field Sales Executive",
+    "designation": "Field Sales Executive",
+    "job_id": "J005",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Open",
+    "status": "Open",
+    "location": "Patna",
+    "skills": [
+      "#Field Sales",
+      "#Sales Management",
+      "#English",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-002",
+    "candidate_id": "CAND-0005",
+    "applicant_name": "Rajesh Bhagat",
+    "job_title": "Car Driver",
+    "designation": "Car Driver",
+    "job_id": "J004",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Open",
+    "status": "Open",
+    "location": "Kargahia Purab, Bettiah (10.8 KM)",
+    "skills": [
+      "#Field Sales",
+      "#Good Communication Skills",
+      "#Sales",
+      "#Car",
+      "#English",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-003",
+    "candidate_id": "CAND-0003",
+    "applicant_name": "Abhinas Mehata",
+    "job_title": "Textile Salesman",
+    "designation": "Textile Salesman",
+    "job_id": "J004, J002",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Replied",
+    "status": "Replied",
+    "location": "Godadara, Surat (5.2 KM)",
+    "skills": [
+      "#Production Management",
+      "#Good Communication Skills",
+      "#Production Planning",
+      "#English",
+      "#Hindi",
+      "#Gujarati"
+    ]
+  },
+  {
+    "id": "CARD-004",
+    "candidate_id": "CAND-0002",
+    "applicant_name": "Mori Shweta",
+    "job_title": "Marketing Executive",
+    "designation": "Marketing Executive",
+    "job_id": "J005",
+    "recruiter_name": "Rahul S.",
+    "stage": "Replied",
+    "status": "Replied",
+    "location": "Kothariya, Rajkot (5.1 KM)",
+    "skills": [
+      "#Good Communication Skills",
+      "#Advanced Excel",
+      "#MS Power Point",
+      "#Gujarati",
+      "#Computer",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-005",
+    "candidate_id": "CAND-0008",
+    "applicant_name": "Dayanand Sahu",
+    "job_title": "Field Sales Executive",
+    "designation": "Field Sales Executive",
+    "job_id": "J002",
+    "recruiter_name": "Rahul S.",
+    "stage": "Replied",
+    "status": "Replied",
+    "location": "Patna",
+    "skills": [
+      "#Field Sales",
+      "#Sales Management",
+      "#B2B"
+    ]
+  },
+  {
+    "id": "CARD-006",
+    "candidate_id": "CAND-0009",
+    "applicant_name": "Bhawesh Dewangan",
+    "job_title": "Sales Executive",
+    "designation": "Sales Executive",
+    "job_id": "J002",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Replied",
+    "status": "Replied",
+    "location": "Bettiah",
+    "skills": [
+      "#Field Sales",
+      "#Direct Sales",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-007",
+    "candidate_id": "CAND-0010",
+    "applicant_name": "Kamesh Sahu",
+    "job_title": "Telecalling Executive",
+    "designation": "Telecalling Executive",
+    "job_id": "J004",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Replied",
+    "status": "Replied",
+    "location": "Patna",
+    "skills": [
+      "#Telecalling",
+      "#Customer Support",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-008",
+    "candidate_id": "CAND-0011",
+    "applicant_name": "Sushmita Diwan",
+    "job_title": "Digital Marketing",
+    "designation": "Digital Marketing",
+    "job_id": "J005",
+    "recruiter_name": "Rahul S.",
+    "stage": "Replied",
+    "status": "Replied",
+    "location": "Rajkot",
+    "skills": [
+      "#Digital Marketing",
+      "#Social Media",
+      "#English"
+    ]
+  },
+  {
+    "id": "CARD-009",
+    "candidate_id": "CAND-0003",
+    "applicant_name": "Abhinas Mehata",
+    "job_title": "Textile Salesman",
+    "designation": "Textile Salesman",
+    "job_id": "J007",
+    "recruiter_name": "Rahul S.",
+    "stage": "Shortlisted",
+    "status": "Shortlisted",
+    "location": "Godadara, Surat (5.2 KM)",
+    "skills": [
+      "#Production Management",
+      "#Good Communication Skills",
+      "#Production Planning",
+      "#English",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-010",
+    "candidate_id": "CAND-0013",
+    "applicant_name": "Vintagevibeshome _03",
+    "job_title": "Analyst",
+    "designation": "Analyst",
+    "job_id": "J001",
+    "recruiter_name": "Frappe H.",
+    "stage": "Shortlisted",
+    "status": "Shortlisted",
+    "location": "Patna",
+    "skills": [
+      "#Data Analysis",
+      "#Python",
+      "#Frappe HR",
+      "#Excel"
+    ]
+  },
+  {
+    "id": "CARD-011",
+    "candidate_id": "CAND-0006",
+    "applicant_name": "Nency Radadiya",
+    "job_title": "Executive HR",
+    "designation": "Executive HR",
+    "job_id": "J005",
+    "recruiter_name": "Rahul S.",
+    "stage": "Hold",
+    "status": "Hold",
+    "location": "Chandreshnagar, Rajkot (1.1 KM)",
+    "skills": [
+      "#Payroll Management",
+      "#Human Resource Management",
+      "#Screening",
+      "#MS Power Point",
+      "#Good English"
+    ]
+  },
+  {
+    "id": "CARD-012",
+    "candidate_id": "CAND-0004",
+    "applicant_name": "Ankjeet Sonvani",
+    "job_title": "Field Sales Executive",
+    "designation": "Field Sales Executive",
+    "job_id": "J004, J002, J003, J005",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Rejected",
+    "status": "Rejected",
+    "location": "Patna",
+    "skills": [
+      "#Field Sales",
+      "#Sales Management",
+      "#English",
+      "#Hindi"
+    ]
+  },
+  {
+    "id": "CARD-013",
+    "candidate_id": "CAND-0007",
+    "applicant_name": "Mahesh Rawal",
+    "job_title": "Salesperson",
+    "designation": "Salesperson",
+    "job_id": "J004",
+    "recruiter_name": "rudrasinh t.",
+    "stage": "Rejected",
+    "status": "Rejected",
+    "location": "Varachha, Surat (0.8 KM)",
+    "skills": [
+      "#Good Communication Skills",
+      "#Basic Excel",
+      "#English",
+      "#Hindi",
+      "#Gujarati",
+      "#Marathi"
+    ]
+  },
+  {
+    "id": "CARD-014",
+    "candidate_id": "CAND-0006",
+    "applicant_name": "Nency Radadiya",
+    "job_title": "Executive HR",
+    "designation": "Executive HR",
+    "job_id": "J002",
+    "recruiter_name": "Rahul S.",
+    "stage": "Rejected",
+    "status": "Rejected",
+    "location": "Chandreshnagar, Rajkot (1.1 KM)",
+    "skills": [
+      "#Payroll Management",
+      "#Human Resource Management",
+      "#Screening"
+    ]
+  }
+]
