@@ -1,0 +1,42 @@
+[
+  {
+    "name": "REC-001",
+    "user_email": "admin@example.com",
+    "full_name": "Administrator (Superuser)",
+    "role": "SuperAdmin",
+    "is_admin": 1,
+    "assigned_job_id": "J001, J002, J003, J004, J005, J006, J007",
+    "is_active": 1,
+    "is_locked": 0
+  },
+  {
+    "name": "REC-002",
+    "user_email": "rudrasinh3115@gmail.com",
+    "full_name": "rudrasinh t.",
+    "role": "Lead Recruiter",
+    "is_admin": 1,
+    "assigned_job_id": "J004, J002, J005, J007",
+    "is_active": 1,
+    "is_locked": 0
+  },
+  {
+    "name": "REC-003",
+    "user_email": "rahul.sharma@example.com",
+    "full_name": "Rahul Sharma (HR Director)",
+    "role": "HR Director",
+    "is_admin": 0,
+    "assigned_job_id": "J002, J003, J005, J007",
+    "is_active": 1,
+    "is_locked": 0
+  },
+  {
+    "name": "REC-004",
+    "user_email": "pooja.patel@example.com",
+    "full_name": "Pooja Patel (Recruiter J001)",
+    "role": "Recruiter",
+    "is_admin": 0,
+    "assigned_job_id": "J001",
+    "is_active": 1,
+    "is_locked": 0
+  }
+]
